@@ -8,8 +8,9 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     define: {
-      // Polyfill process.env.API_KEY for the frontend code to work smoothly
-      'process.env.API_KEY': JSON.stringify(env.API_KEY),
+      // Polyfill process.env.API_KEY. 
+      // Use || '' to ensure it is always a string, preventing "process is not defined" errors in browser if key is missing.
+      'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
     },
   };
 });

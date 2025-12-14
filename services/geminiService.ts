@@ -1,7 +1,15 @@
 import { GoogleGenAI } from "@google/genai";
 import { GenerateRequest, GeneratedResult, Platform, GroundingSource } from "../types";
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+// Helper to lazily initialize the AI client
+// This prevents the app from crashing on load (white screen) if the API key is missing
+const getAiClient = () => {
+  const apiKey = process.env.API_KEY;
+  if (!apiKey) {
+    throw new Error("API Key 未設定。請在專案根目錄建立 .env 檔案並填入 API_KEY=您的金鑰，或是在部署平台 (Vercel) 設定環境變數。");
+  }
+  return new GoogleGenAI({ apiKey });
+};
 
 export const getTrendingTopics = async (): Promise<string[]> => {
   const today = new Date().toLocaleDateString("zh-TW", { year: 'numeric', month: 'long', day: 'numeric' });
@@ -18,6 +26,7 @@ export const getTrendingTopics = async (): Promise<string[]> => {
   `;
 
   try {
+    const ai = getAiClient();
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
@@ -39,13 +48,16 @@ export const getTrendingTopics = async (): Promise<string[]> => {
 
   } catch (error) {
     console.error("Trending fetch error:", error);
-    // Fallback if API fails
+    // Fallback if API fails, allow UI to continue rendering
     return ["NVIDIA AI", "台積電", "聯準會", "美股大盤", "比特幣", "AI 手機"];
   }
 };
 
 export const generatePost = async (request: GenerateRequest): Promise<GeneratedResult> => {
   const { topic, platform, tone, imageStyle } = request;
+
+  // Initialize client here to catch errors gracefully
+  const ai = getAiClient();
 
   // Get current date in a readable format for the AI
   const today = new Date().toLocaleDateString("zh-TW", { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
@@ -149,6 +161,10 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
 
   } catch (error) {
     console.error("Gemini API Error:", error);
+    // Rethrow with user-friendly message
+    if (error instanceof Error && error.message.includes("API Key")) {
+      throw error;
+    }
     throw new Error("生成失敗，請檢查 API Key 或網路連線。");
   }
 };
