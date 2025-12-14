@@ -1,6 +1,6 @@
 import React from 'react';
 import { GeneratedResult, Platform } from '../types';
-import { Copy, ExternalLink, RefreshCw, MessageCircle, Smartphone, Image as ImageIcon, Sparkles } from 'lucide-react';
+import { Copy, ExternalLink, RefreshCw, MessageCircle, Smartphone, Sparkles } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 
 interface ResultDisplayProps {

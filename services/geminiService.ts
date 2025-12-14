@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { GenerateRequest, GeneratedResult, Platform, Tone } from "../types";
+import { GenerateRequest, GeneratedResult, Platform, GroundingSource } from "../types";
 
 const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
@@ -130,11 +130,14 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
     const imagePrompt = parts.length > 1 ? parts[1].trim() : undefined;
     
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
+    
+    // Fix Type Error: Explicitly cast filtered array to GroundingSource[]
+    // and use a type predicate or explicit check for null
     const sources = groundingChunks
       .map((chunk: any) => chunk.web ? { title: chunk.web.title, uri: chunk.web.uri } : null)
-      .filter((source: any) => source !== null);
+      .filter((source: GroundingSource | null): source is GroundingSource => source !== null);
 
-    const uniqueSources = sources.filter((v: any, i: number, a: any) => a.findIndex((t: any) => (t.uri === v.uri)) === i);
+    const uniqueSources = sources.filter((v, i, a) => a.findIndex(t => t.uri === v.uri) === i);
 
     return {
       content,

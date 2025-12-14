@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import process from "process";
+import process from "node:process";
 
 // 1. 初始化設定
 const API_KEY = process.env.API_KEY;
