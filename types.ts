@@ -1,8 +1,8 @@
 export enum Platform {
+  Blog = '方格子 (Vocus)',
   LinkedIn = 'LinkedIn',
   Twitter = 'Twitter/X',
   Facebook = 'Facebook',
-  Blog = '方格子 (Vocus)',
   InstantMessaging = 'Line / Telegram (快訊)'
 }
 
@@ -14,10 +14,10 @@ export enum Tone {
 }
 
 export enum ImageStyle {
+  Editorial = '新聞插畫 (Editorial)',
   Cyberpunk = '賽博龐克 (Cyberpunk)',
   Minimalist = '極簡主義 (Minimalist)',
   Isometric = '3D 等距 (3D Isometric)',
-  Editorial = '新聞插畫 (Editorial)',
   Abstract = '抽象數據 (Abstract Data)',
   Realistic = '寫實攝影 (Photorealistic)'
 }

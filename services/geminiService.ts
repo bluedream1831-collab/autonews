@@ -82,7 +82,7 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
       - LinkedIn: Professional, structured (Hook -> Analysis -> Conclusion), use bullet points, moderate emojis.
       - Twitter/X: Concise, punchy, maybe a thread structure (1/x), hashtags.
       - Facebook: Engaging, slightly more conversational but still expert, questions to drive comments.
-      - Blog: Longer form, detailed analysis, headers.
+      - 方格子 (Vocus) / Blog: Longer form, detailed analysis, h2/h3 headers, clear structure. Use markdown for styling.
     `;
   }
 

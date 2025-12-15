@@ -20,7 +20,7 @@ const QUICK_TAGS = [
 
 const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const [topic, setTopic] = useState('');
-  // Set initial state
+  // Set initial state - will default to first item in Enum if not explicitly set, but here we set explicitly
   const [platform, setPlatform] = useState<Platform>(Platform.Blog);
   const [tone, setTone] = useState<Tone>(Tone.Professional);
   const [imageStyle, setImageStyle] = useState<ImageStyle>(ImageStyle.Editorial);
@@ -63,7 +63,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-slate-850 p-6 rounded-xl border border-slate-700 shadow-xl">
+    <form onSubmit={handleSubmit} className="bg-slate-850 p-6 rounded-xl border border-slate-700 shadow-xl" autoComplete="off">
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-2 text-primary-500">
           <TrendingUp className="w-6 h-6" />
@@ -83,6 +83,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
             placeholder="例如：NVIDIA 財報分析、台積電高雄廠進度、聯準會降息對科技股影響..."
             className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none transition-all placeholder-slate-600 h-24 resize-none"
             required
+            autoComplete="off"
           />
           
           {/* Trending & Quick Tags Section */}
@@ -172,6 +173,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               value={platform}
               onChange={(e) => setPlatform(e.target.value as Platform)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 outline-none appearance-none"
+              autoComplete="off"
             >
               {Object.values(Platform).map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -188,6 +190,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               value={tone}
               onChange={(e) => setTone(e.target.value as Tone)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 outline-none appearance-none"
+              autoComplete="off"
             >
               {Object.values(Tone).map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -205,6 +208,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               value={imageStyle}
               onChange={(e) => setImageStyle(e.target.value as ImageStyle)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-purple-600 outline-none appearance-none"
+              autoComplete="off"
             >
               {Object.values(ImageStyle).map((s) => (
                 <option key={s} value={s}>{s}</option>
