@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Platform, Tone, ImageStyle, GenerateRequest } from '../types';
 import { getTrendingTopics } from '../services/geminiService';
 import { Send, TrendingUp, Loader2, Tag, Flame, RefreshCw, Palette } from 'lucide-react';
@@ -20,6 +20,7 @@ const QUICK_TAGS = [
 
 const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const [topic, setTopic] = useState('');
+  // Set initial state
   const [platform, setPlatform] = useState<Platform>(Platform.Blog);
   const [tone, setTone] = useState<Tone>(Tone.Professional);
   const [imageStyle, setImageStyle] = useState<ImageStyle>(ImageStyle.Editorial);
@@ -28,6 +29,12 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
   const [isTrendingLoading, setIsTrendingLoading] = useState(false);
   const [hasFetchedTrending, setHasFetchedTrending] = useState(false);
+
+  // Force defaults on mount to clear any cached or stale state
+  useEffect(() => {
+    setPlatform(Platform.Blog);
+    setImageStyle(ImageStyle.Editorial);
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
