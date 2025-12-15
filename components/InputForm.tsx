@@ -20,9 +20,9 @@ const QUICK_TAGS = [
 
 const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const [topic, setTopic] = useState('');
-  const [platform, setPlatform] = useState<Platform>(Platform.LinkedIn);
+  const [platform, setPlatform] = useState<Platform>(Platform.Blog);
   const [tone, setTone] = useState<Tone>(Tone.Professional);
-  const [imageStyle, setImageStyle] = useState<ImageStyle>(ImageStyle.Isometric);
+  const [imageStyle, setImageStyle] = useState<ImageStyle>(ImageStyle.Editorial);
   
   // Trending Topics State
   const [trendingTopics, setTrendingTopics] = useState<string[]>([]);

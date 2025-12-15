@@ -41,3 +41,10 @@ export interface GenerateRequest {
   tone: Tone;
   imageStyle: ImageStyle;
 }
+
+export interface HistoryItem {
+  id: string;
+  topic: string;
+  timestamp: string;
+  result: GeneratedResult;
+}

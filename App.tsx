@@ -1,14 +1,61 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
 import ResultDisplay from './components/ResultDisplay';
-import { GenerateRequest, GeneratedResult } from './types';
+import HistoryDrawer from './components/HistoryDrawer';
+import { GenerateRequest, GeneratedResult, HistoryItem } from './types';
 import { generatePost } from './services/geminiService';
-import { Activity, Cpu, Globe, BarChart3 } from 'lucide-react';
+import { Activity, Cpu, Globe, BarChart3, History } from 'lucide-react';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<GeneratedResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  
+  // History State
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  // Load history from localStorage on mount
+  useEffect(() => {
+    const savedHistory = localStorage.getItem('post_history');
+    if (savedHistory) {
+      try {
+        setHistory(JSON.parse(savedHistory));
+      } catch (e) {
+        console.error("Failed to parse history", e);
+      }
+    }
+  }, []);
+
+  // Save history to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('post_history', JSON.stringify(history));
+  }, [history]);
+
+  const addToHistory = (request: GenerateRequest, result: GeneratedResult) => {
+    const newItem: HistoryItem = {
+      id: crypto.randomUUID(),
+      topic: request.topic,
+      timestamp: new Date().toLocaleString('zh-TW'),
+      result: result
+    };
+    setHistory(prev => [newItem, ...prev]);
+  };
+
+  const deleteHistoryItem = (id: string) => {
+    setHistory(prev => prev.filter(item => item.id !== id));
+  };
+
+  const clearHistory = () => {
+    if (confirm("確定要刪除所有紀錄嗎？")) {
+      setHistory([]);
+    }
+  };
+
+  const handleSelectHistory = (item: HistoryItem) => {
+    setResult(item.result);
+    setError(null);
+  };
 
   const handleGenerate = async (request: GenerateRequest) => {
     setLoading(true);
@@ -17,6 +64,8 @@ const App: React.FC = () => {
     try {
       const data = await generatePost(request);
       setResult(data);
+      // Automatically save to history
+      addToHistory(request, data);
     } catch (err) {
       setError(err instanceof Error ? err.message : '發生未預期的錯誤');
     } finally {
@@ -32,7 +81,7 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 selection:bg-primary-500/30">
       {/* Header */}
-      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-50">
+      <header className="border-b border-slate-800 bg-slate-900/50 backdrop-blur-md sticky top-0 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-blue-600 p-2 rounded-lg shadow-lg shadow-blue-500/20">
@@ -43,19 +92,31 @@ const App: React.FC = () => {
               <p className="text-xs text-slate-400">美台股與科技時事生成器</p>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
-             <div className="flex items-center gap-1.5">
-                <Globe className="w-4 h-4 text-blue-400" />
-                <span>Global Search</span>
-             </div>
-             <div className="flex items-center gap-1.5">
-                <Cpu className="w-4 h-4 text-purple-400" />
-                <span>Tech Analysis</span>
-             </div>
-             <div className="flex items-center gap-1.5">
-                <BarChart3 className="w-4 h-4 text-green-400" />
-                <span>Market Data</span>
-             </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="hidden md:flex items-center gap-6 text-sm text-slate-400">
+              <div className="flex items-center gap-1.5">
+                  <Globe className="w-4 h-4 text-blue-400" />
+                  <span>Global Search</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                  <Cpu className="w-4 h-4 text-purple-400" />
+                  <span>Tech Analysis</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                  <BarChart3 className="w-4 h-4 text-green-400" />
+                  <span>Market Data</span>
+              </div>
+            </div>
+            
+            {/* History Toggle Button */}
+            <button
+              onClick={() => setIsHistoryOpen(true)}
+              className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-all ml-2"
+            >
+              <History className="w-4 h-4" />
+              <span className="hidden sm:inline">歷史紀錄</span>
+            </button>
           </div>
         </div>
       </header>
@@ -102,12 +163,31 @@ const App: React.FC = () => {
                 <BarChart3 className="w-16 h-16 mb-4 opacity-20" />
                 <p className="text-lg font-medium">等待生成指令...</p>
                 <p className="text-sm">在左側輸入主題以開始分析</p>
+                {history.length > 0 && (
+                  <button 
+                    onClick={() => setIsHistoryOpen(true)}
+                    className="mt-4 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                  >
+                    <History className="w-3 h-3" />
+                    查看 {history.length} 筆歷史紀錄
+                  </button>
+                )}
               </div>
             )}
           </div>
 
         </div>
       </main>
+
+      {/* History Drawer */}
+      <HistoryDrawer
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        history={history}
+        onSelect={handleSelectHistory}
+        onDelete={deleteHistoryItem}
+        onClearAll={clearHistory}
+      />
     </div>
   );
 };
