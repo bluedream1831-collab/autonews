@@ -2,7 +2,7 @@ export enum Platform {
   LinkedIn = 'LinkedIn',
   Twitter = 'Twitter/X',
   Facebook = 'Facebook',
-  Blog = 'Blog/Newsletter',
+  Blog = '方格子 (Vocus)',
   InstantMessaging = 'Line / Telegram (快訊)'
 }
 
