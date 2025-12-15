@@ -82,6 +82,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset }) => {
             </div>
             <div className="bg-slate-900 rounded-lg p-4 border border-purple-500/20 relative group">
               <p className="text-slate-300 font-mono text-sm leading-relaxed pr-8">
+                <span className="text-purple-400 font-bold mr-2 select-none">圖片提示詞:</span>
                 {result.imagePrompt}
               </p>
               <button

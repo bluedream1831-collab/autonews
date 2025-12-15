@@ -1,6 +1,6 @@
 import React from 'react';
 import { HistoryItem } from '../types';
-import { X, Trash2, Clock, ChevronRight, MessageSquare, History } from 'lucide-react';
+import { X, Trash2, Clock, MessageSquare, History } from 'lucide-react';
 
 interface HistoryDrawerProps {
   isOpen: boolean;
