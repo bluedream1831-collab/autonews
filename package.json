@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "find-id": "node scripts/get-telegram-id.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.33.0",

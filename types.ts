@@ -48,3 +48,9 @@ export interface HistoryItem {
   timestamp: string;
   result: GeneratedResult;
 }
+
+export interface AppSettings {
+  geminiApiKey: string;
+  telegramBotToken: string;
+  telegramChatId: string;
+}

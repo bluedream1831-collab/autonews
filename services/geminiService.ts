@@ -2,31 +2,36 @@ import { GoogleGenAI } from "@google/genai";
 import { GenerateRequest, GeneratedResult, Platform, GroundingSource } from "../types";
 
 // Helper to lazily initialize the AI client
-// This prevents the app from crashing on load (white screen) if the API key is missing
-const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
-  if (!apiKey) {
-    throw new Error("API Key 未設定。請在專案根目錄建立 .env 檔案並填入 API_KEY=您的金鑰，或是在部署平台 (Vercel) 設定環境變數。");
+const getAiClient = (apiKey?: string) => {
+  // Priority: Explicit key > Environment variable
+  const key = apiKey || process.env.API_KEY;
+  if (!key) {
+    throw new Error("API Key 未設定。請點擊右上角「設定」按鈕輸入 Gemini API Key，或在專案 .env 檔案中設定。");
   }
-  return new GoogleGenAI({ apiKey });
+  return new GoogleGenAI({ apiKey: key });
 };
 
-export const getTrendingTopics = async (): Promise<string[]> => {
+export const getTrendingTopics = async (apiKey?: string): Promise<string[]> => {
   const today = new Date().toLocaleDateString("zh-TW", { year: 'numeric', month: 'long', day: 'numeric' });
   
   const prompt = `
-    Identify 6 current trending specific keywords, stock tickers, or short news headlines in the Global Technology sector (AI, Semi) and US/Taiwan Stock Markets for today (${today}). 
+    Identify 6 current trending specific keywords, stock tickers, or short news headlines for today (${today}).
+    
+    Focus Areas:
+    1. Global Technology sector (AI, Semi, SaaS).
+    2. Stock Markets: Mainly US & Taiwan, but also include major events in Japan, Europe, or Crypto if significant.
+    
     Use the "Google Search" tool to ensure the data is absolutely real-time.
     
     Requirements:
     - Return ONLY the topics separated by a semicolon ';'.
-    - Example Output: NVIDIA Blackwell;台積電法說;比特幣價格;OpenAI Sora;聯準會降息;AAPL
+    - Example Output: NVIDIA Blackwell;台積電法說;比特幣價格;日經指數新高;OpenAI Sora;聯準會降息
     - Do not add any introductory text, numbering, or bullet points.
     - Keep each topic concise (under 15 characters if possible).
   `;
 
   try {
-    const ai = getAiClient();
+    const ai = getAiClient(apiKey);
     const response = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
@@ -49,15 +54,15 @@ export const getTrendingTopics = async (): Promise<string[]> => {
   } catch (error) {
     console.error("Trending fetch error:", error);
     // Fallback if API fails, allow UI to continue rendering
-    return ["NVIDIA AI", "台積電", "聯準會", "美股大盤", "比特幣", "AI 手機"];
+    return ["NVIDIA AI", "台積電", "比特幣", "美股大盤", "日經指數", "AI 手機"];
   }
 };
 
-export const generatePost = async (request: GenerateRequest): Promise<GeneratedResult> => {
+export const generatePost = async (request: GenerateRequest, apiKey?: string): Promise<GeneratedResult> => {
   const { topic, platform, tone, imageStyle } = request;
 
   // Initialize client here to catch errors gracefully
-  const ai = getAiClient();
+  const ai = getAiClient(apiKey);
 
   // Get current date in a readable format for the AI
   const today = new Date().toLocaleDateString("zh-TW", { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
@@ -92,11 +97,12 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
     
     CURRENT CONTEXT:
     - Today's Date: ${today}.
-    - When searching for "latest price" or "news", assume the user means relative to ${today}.
+    - When searching for "latest price" or "news", assume the user means relative to ${today} or the most recent market close.
+    - STRICT DATE CHECK: Do NOT invent news for future dates. Verify the year and month.
     
     YOUR EXPERTISE:
     1. Technology Sector (AI, Semiconductors, SaaS, Hardware).
-    2. Global Stock Markets (US/Taiwan).
+    2. Global Financial Markets (US, Taiwan, Japan, Europe, Crypto).
     
     YOUR TASK:
     1. Generate a high-quality post based on: "${topic}" using the "Google Search" tool for latest data.
@@ -112,13 +118,13 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
     - Style: ${tone}.
     ${formatInstruction}
     - Always cite recent events.
+    - If the topic involves stock prices, verify the latest data.
 
     IMAGE PROMPT GUIDELINES:
     - Language: English (Must be in English).
     - Style: ${imageStyle}. 
-    - Requirement: Ensure the prompt explicitly describes visuals matching this style (e.g., if Cyberpunk, mention neon, dark, futuristic; if Isometric, mention 3D, clean lines, floating elements).
+    - Requirement: Ensure the prompt explicitly describes visuals matching this style.
     - Structure: Subject + Environment + Art Style + Lighting/Color + Aspect Ratio.
-    - Example: "A futuristic data center glowing with blue neon lights, symbolizing AI processing, isometric 3D render, unreal engine 5, 8k resolution, cinematic lighting --ar 16:9"
   `;
 
   const prompt = `Topic: "${topic}"`;
@@ -130,7 +136,7 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
       config: {
         systemInstruction: systemInstruction,
         tools: [{ googleSearch: {} }],
-        temperature: 0.7,
+        temperature: 0.5, // Reduced temperature for better factual accuracy
       },
     });
 
@@ -144,7 +150,6 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
     const groundingChunks = response.candidates?.[0]?.groundingMetadata?.groundingChunks || [];
     
     // Fix Type Error: Explicitly cast filtered array to GroundingSource[]
-    // and use a type predicate or explicit check for null
     const sources = groundingChunks
       .map((chunk: any) => chunk.web ? { title: chunk.web.title, uri: chunk.web.uri } : null)
       .filter((source: GroundingSource | null): source is GroundingSource => source !== null);
@@ -161,10 +166,9 @@ export const generatePost = async (request: GenerateRequest): Promise<GeneratedR
 
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // Rethrow with user-friendly message
-    if (error instanceof Error && error.message.includes("API Key")) {
-      throw error;
+    if (error instanceof Error) {
+       if (error.message.includes("API_KEY")) throw new Error("請檢查 API Key 是否正確設定。");
     }
-    throw new Error("生成失敗，請檢查 API Key 或網路連線。");
+    throw error;
   }
 };

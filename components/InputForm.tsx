@@ -12,15 +12,17 @@ const QUICK_TAGS = [
   "NVIDIA (NVDA)", 
   "台積電 (2330)", 
   "聯準會 (Fed)", 
-  "蘋果 (AAPL)", 
-  "AMD", 
+  "比特幣 (BTC)",
+  "日經指數 (Nikkei)",
+  "黃金 (Gold)",
   "特斯拉 (TSLA)",
   "美股大盤"
 ];
 
 const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const [topic, setTopic] = useState('');
-  // Set initial state - will default to first item in Enum if not explicitly set, but here we set explicitly
+  
+  // Initialize with explicit values
   const [platform, setPlatform] = useState<Platform>(Platform.Blog);
   const [tone, setTone] = useState<Tone>(Tone.Professional);
   const [imageStyle, setImageStyle] = useState<ImageStyle>(ImageStyle.Editorial);
@@ -30,16 +32,31 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const [isTrendingLoading, setIsTrendingLoading] = useState(false);
   const [hasFetchedTrending, setHasFetchedTrending] = useState(false);
 
-  // Force defaults on mount to clear any cached or stale state
+  // CRITICAL FIX: Use setTimeout to override browser autofill behavior
   useEffect(() => {
-    setPlatform(Platform.Blog);
-    setImageStyle(ImageStyle.Editorial);
+    const timer = setTimeout(() => {
+      setPlatform(Platform.Blog);
+      setImageStyle(ImageStyle.Editorial);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
+
+  const triggerGenerate = () => {
+    if (!topic.trim()) return;
+    onGenerate({ topic, platform, tone, imageStyle });
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!topic.trim()) return;
-    onGenerate({ topic, platform, tone, imageStyle });
+    triggerGenerate();
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Allow Ctrl+Enter or Cmd+Enter to submit
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      triggerGenerate();
+    }
   };
 
   const addTag = (tag: string) => {
@@ -51,12 +68,22 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const handleFetchTrending = async () => {
     setIsTrendingLoading(true);
     try {
-      const topics = await getTrendingTopics();
+      // Hack: Retrieve key from localStorage directly for this specific call
+      let apiKey = process.env.API_KEY;
+      try {
+          const settings = localStorage.getItem('app_settings');
+          if (settings) {
+              const parsed = JSON.parse(settings);
+              if (parsed.geminiApiKey) apiKey = parsed.geminiApiKey;
+          }
+      } catch (e) {}
+
+      const topics = await getTrendingTopics(apiKey);
       setTrendingTopics(topics);
       setHasFetchedTrending(true);
     } catch (error) {
       console.error(error);
-      alert("無法取得熱搜，請稍後再試");
+      alert("無法取得熱搜。請確保您已在「設定」中輸入 API Key，或檢查網路連線。");
     } finally {
       setIsTrendingLoading(false);
     }
@@ -74,15 +101,18 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
       <div className="space-y-6">
         {/* Topic Input */}
         <div>
-          <label className="block text-sm font-medium text-slate-400 mb-2">
-            核心主題 / 股票代號 / 新聞事件
+          <label className="block text-sm font-medium text-slate-400 mb-2 flex justify-between">
+            <span>核心主題 / 股票代號 / 新聞事件</span>
+            <span className="text-xs text-slate-500 hidden sm:inline">Ctrl + Enter 快速生成</span>
           </label>
           <textarea
             value={topic}
             onChange={(e) => setTopic(e.target.value)}
+            onKeyDown={handleKeyDown}
             placeholder="例如：NVIDIA 財報分析、台積電高雄廠進度、聯準會降息對科技股影響..."
             className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 focus:border-transparent outline-none transition-all placeholder-slate-600 h-24 resize-none"
             required
+            name="topic_input_no_autofill"
             autoComplete="off"
           />
           
@@ -167,13 +197,15 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
           {/* Platform Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">
-              發布平台
+              發布平台 (預設:方格子)
             </label>
             <select
+              key={`platform-select-${platform}`}
               value={platform}
               onChange={(e) => setPlatform(e.target.value as Platform)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 outline-none appearance-none"
               autoComplete="off"
+              name="platform_select_v2"
             >
               {Object.values(Platform).map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -191,6 +223,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               onChange={(e) => setTone(e.target.value as Tone)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 outline-none appearance-none"
               autoComplete="off"
+              name="tone_select_v2"
             >
               {Object.values(Tone).map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -202,13 +235,15 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
           <div>
             <label className="flex items-center gap-1.5 text-sm font-medium text-purple-400 mb-2">
               <Palette className="w-3.5 h-3.5" />
-              配圖風格
+              配圖風格 (預設:新聞插畫)
             </label>
             <select
+              key={`style-select-${imageStyle}`}
               value={imageStyle}
               onChange={(e) => setImageStyle(e.target.value as ImageStyle)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-purple-600 outline-none appearance-none"
               autoComplete="off"
+              name="style_select_v2"
             >
               {Object.values(ImageStyle).map((s) => (
                 <option key={s} value={s}>{s}</option>

@@ -6,7 +6,7 @@ const API_KEY = process.env.API_KEY;
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// 定義與前端一致的風格列表，讓機器人隨機挑選
+// 定義與前端一致的風格列表
 const IMAGE_STYLES = [
   'Cyberpunk (賽博龐克)',
   'Minimalist (極簡主義)',
@@ -17,7 +17,7 @@ const IMAGE_STYLES = [
 ];
 
 if (!API_KEY || !TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) {
-  console.error("❌ 缺少必要的環境變數 (API_KEY, TELEGRAM_BOT_TOKEN, TELEGRAM_CHAT_ID)");
+  console.error("❌ 缺少必要的環境變數");
   process.exit(1);
 }
 
@@ -28,50 +28,104 @@ async function run() {
   try {
     console.log("🚀 開始執行自動化發文流程...");
     
-    const today = new Date().toLocaleDateString("zh-TW", { timeZone: "Asia/Taipei" });
+    // 取得台灣時間資訊
+    const now = new Date();
+    const options = { timeZone: "Asia/Taipei" };
+    const today = now.toLocaleDateString("zh-TW", { ...options, year: 'numeric', month: 'long', day: 'numeric' });
+    const weekday = now.toLocaleDateString("zh-TW", { ...options, weekday: 'long' });
+    const currentHour = parseInt(now.toLocaleTimeString("en-US", { ...options, hour: 'numeric', hour12: false }));
     
-    // 隨機選擇今日風格
-    const randomStyle = IMAGE_STYLES[Math.floor(Math.random() * IMAGE_STYLES.length)];
-    console.log(`🎨 今日隨機配圖風格: ${randomStyle}`);
+    // 判斷是早報還是晚報 (以中午 12 點為界線)
+    const isMorningSession = currentHour < 12;
+    
+    // 設定不同時段的策略
+    let marketFocus = "";
+    let reportTitleType = "";
+    
+    if (isMorningSession) {
+      console.log(`🌞 偵測為早報時段 (現在 ${currentHour} 點) - 鎖定美股與全球政策`);
+      reportTitleType = "🇺🇸 全球財經早報";
+      marketFocus = `
+        Focus Areas (MORNING EDITION):
+        1. US Stock Market Close (S&P 500, Nasdaq, Dow Jones) - Analyze the session that JUST closed.
+        2. US Economic Policies/Fed Announcements (Interest rates, CPI/PPI, Employment data).
+        3. Global Tech Giants (NVIDIA, Apple, Microsoft, Tesla) performance.
+        4. International geopolitical events affecting markets.
+        
+        Note: The "trading session" refers to the US market close which happened overnight relative to Taipei time.
+      `;
+    } else {
+      console.log(`🌙 偵測為晚報時段 (現在 ${currentHour} 點) - 鎖定台股與亞洲科技`);
+      reportTitleType = "🇹🇼 台灣/亞洲科技晚報";
+      marketFocus = `
+        Focus Areas (AFTERNOON EDITION):
+        1. Taiwan Stock Market (TWSE) Closing Analysis (Today's session).
+        2. Taiwan Tech Sector (TSMC, MediaTek, Foxconn, AI Supply Chain).
+        3. Asian Markets Overview (Nikkei 225, Hang Seng) if significant.
+        4. Key industry news released during Asian trading hours.
+      `;
+    }
 
-    // 步驟 A: 找出今日熱點
-    console.log("🔍 正在搜尋今日市場熱點...");
+    // 隨機選擇風格
+    const randomStyle = IMAGE_STYLES[Math.floor(Math.random() * IMAGE_STYLES.length)];
+
+    // 步驟 A: 找出時段熱點
+    console.log("🔍 正在搜尋市場熱點...");
     const trendPrompt = `
-      Identify the single most critical and impactful event happening TODAY (${today}) in the Global Tech (AI/Semi) or US/Taiwan Stock Market.
-      Examples: "NVIDIA Earnings", "TSMC Monthly Revenue", "Fed Rate Decision", "Apple Product Launch".
-      Requirement: Return ONLY the topic name as a plain string. No explanations.
+      Current Date: ${today} (${weekday}).
+      
+      Identify the single most critical market driver based on the following focus:
+      ${marketFocus}
+
+      CONSTRAINTS:
+      - STRICTLY check the date. 
+      - If Morning: Report on the US close that happened a few hours ago.
+      - If Afternoon: Report on the Asian session that just finished today.
+      - Return ONLY the topic name as a plain string.
     `;
     
     const trendResp = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: trendPrompt,
-      config: { tools: [{ googleSearch: {} }] }
+      config: { 
+        tools: [{ googleSearch: {} }],
+        temperature: 0.3
+      }
     });
     
-    const topic = trendResp.text.trim();
+    let topic = trendResp.text.trim();
+    // 清理多餘符號
+    topic = topic.replace(/^["']|["']$/g, '').replace(/^Topic:\s*/i, '').replace(/\.$/, '');
+    
+    if (!topic) throw new Error("無法獲取有效的主題");
     console.log(`✅ 鎖定主題: ${topic}`);
 
-    // 步驟 B: 生成 Telegram 專用貼文
+    // 步驟 B: 生成貼文
     console.log("✍️ 正在撰寫分析貼文...");
     const contentPrompt = `
       You are a specialized Financial Bot creating a daily briefing for Telegram.
       
+      CONTEXT:
+      - Report Type: ${reportTitleType}
+      - Today's Date: ${today} (${weekday}).
+      - Topic: "${topic}".
+      
       TASK:
-      Write a concise, high-impact market update about: "${topic}".
-      Use Google Search to get the specific numbers/data from today (${today}).
+      Write a concise, high-impact market update.
+      Use Google Search to get the REAL-TIME data for this specific session.
       
       FORMAT FOR TELEGRAM:
-      1. Header: Use specific emoji + Title (e.g., 🚨 ${topic} 快訊).
-      2. Key Data: Bullet points with numbers (Price changes, Revenue %, etc.).
-      3. Insight: One sentence on why this matters.
-      4. Action: Bullish/Bearish/Wait sentiment.
-      5. Tags: #Stock #Tech #${topic.replace(/\s/g, '')}
+      1. Header: ${reportTitleType} | ${topic}
+      2. Time: Display the actual date/time of the event.
+      3. Key Data: Bullet points with specific numbers (Prices, %, Revenue).
+      4. Insight: Why this matters (Policy impact / Tech trend).
+      5. Action: Bullish/Bearish/Wait sentiment.
+      6. Tags: #Stock #Tech #${topic.replace(/\s+/g, '')}
       
       CONSTRAINTS:
       - Language: Traditional Chinese (Taiwan).
       - Length: Under 300 words.
       - No bold markdown (**), use brackets [] for emphasis.
-      - Tone: Professional but engaging.
     `;
 
     const contentResp = await ai.models.generateContent({
@@ -86,19 +140,16 @@ async function run() {
     console.log("📨 正在傳送至 Telegram...");
     await sendToTelegram(postContent);
     
-    // 步驟 D: 生成並發送 Image Prompt
+    // 步驟 D: 生成 Image Prompt
     console.log("🎨 正在生成 AI 繪圖指令...");
     const imagePromptResp = await ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `
-        Create a high-quality Midjourney prompt (in English) to visualize this news topic: "${topic}". 
-        
-        Style Requirement: ${randomStyle}.
-        
-        Instructions:
-        - Ensure the prompt explicitly describes visuals matching this style.
-        - Structure: Subject + Environment + Art Style + Lighting/Color + Aspect Ratio (--ar 16:9).
-        - Return ONLY the prompt string.
+        Create a high-quality Midjourney prompt (in English) to visualize: "${topic}". 
+        Style: ${randomStyle}.
+        Context: ${isMorningSession ? "US Market/Global Policy" : "Asian Tech/Semiconductors"}.
+        Structure: Subject + Environment + Art Style + Lighting + --ar 16:9.
+        Return ONLY the prompt string.
       `,
     });
     
@@ -113,7 +164,7 @@ async function run() {
   }
 }
 
-// 3. Telegram 發送函數
+// Telegram 發送函數
 async function sendToTelegram(text) {
   const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
   
@@ -123,14 +174,10 @@ async function sendToTelegram(text) {
     body: JSON.stringify({
       chat_id: TELEGRAM_CHAT_ID,
       text: text,
-      parse_mode: 'Markdown' 
     })
   });
 
   if (!response.ok) {
-    const errData = await response.json();
-    console.error("Telegram API Error:", errData);
-    // 不拋出錯誤，避免因為發送失敗導致整個 Action 顯示失敗 (若有需要可自行調整)
     console.error(`Telegram Send Failed: ${response.statusText}`);
   }
 }

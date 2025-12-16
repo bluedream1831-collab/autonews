@@ -1,14 +1,18 @@
-import React from 'react';
-import { GeneratedResult, Platform } from '../types';
-import { Copy, ExternalLink, RefreshCw, MessageCircle, Smartphone, Sparkles } from 'lucide-react';
+import React, { useState } from 'react';
+import { GeneratedResult, Platform, AppSettings } from '../types';
+import { Copy, ExternalLink, RefreshCw, MessageCircle, Smartphone, Sparkles, Send, CheckCircle, AlertCircle } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
+import { sendToTelegram } from '../services/telegramService';
 
 interface ResultDisplayProps {
   result: GeneratedResult | null;
   onReset: () => void;
+  settings: AppSettings;
 }
 
-const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset }) => {
+const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, settings }) => {
+  const [isSending, setIsSending] = useState(false);
+  
   if (!result) return null;
 
   const handleCopy = (text: string) => {
@@ -16,12 +20,40 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset }) => {
     alert('已複製到剪貼簿！');
   };
 
+  const handleSendToTelegram = async () => {
+    if (!settings.telegramBotToken || !settings.telegramChatId) {
+      alert("請先點擊右上角「設定」按鈕，填寫 Telegram Bot Token 和 Channel ID");
+      return;
+    }
+
+    if (!confirm("確定要立即發送此內容到 Telegram 頻道嗎？")) return;
+
+    setIsSending(true);
+    try {
+      // 1. Send Main Content
+      await sendToTelegram(settings.telegramBotToken, settings.telegramChatId, result.content);
+      
+      // 2. Optional: Send Image Prompt if exists
+      if (result.imagePrompt) {
+        const promptMsg = `🎨 AI 配圖指令:\n\n${result.imagePrompt}`;
+        await sendToTelegram(settings.telegramBotToken, settings.telegramChatId, promptMsg);
+      }
+      
+      alert("✅ 發送成功！");
+    } catch (error) {
+      console.error(error);
+      alert(`❌ 發送失敗: ${error instanceof Error ? error.message : '未知錯誤'}`);
+    } finally {
+      setIsSending(false);
+    }
+  };
+
   const isChatMode = result.platform === Platform.InstantMessaging;
 
   return (
     <div className="bg-slate-850 rounded-xl border border-slate-700 shadow-xl overflow-hidden flex flex-col h-full animate-fade-in relative">
       {/* Header */}
-      <div className="p-4 border-b border-slate-700 bg-slate-900/50 flex justify-between items-center z-10">
+      <div className="p-4 border-b border-slate-700 bg-slate-900/50 flex flex-wrap justify-between items-center z-10 gap-2">
         <div className="flex items-center gap-2">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>
           <h3 className="text-white font-semibold">生成結果</h3>
@@ -35,16 +67,28 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset }) => {
           >
             <RefreshCw className="w-4 h-4" />
           </button>
+          
+          {/* Telegram Send Button */}
+          <button
+            onClick={handleSendToTelegram}
+            disabled={isSending}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-sm rounded-lg transition-colors shadow-lg ${
+              isSending 
+                ? 'bg-slate-600 cursor-wait' 
+                : 'bg-[#229ED9] hover:bg-[#1b8abf] shadow-blue-900/20'
+            }`}
+            title="發布到 Telegram 頻道"
+          >
+            <Send className={`w-4 h-4 ${isSending ? 'animate-pulse' : ''}`} />
+            <span className="hidden sm:inline">{isSending ? '發送中...' : '發布'}</span>
+          </button>
+
           <button
             onClick={() => handleCopy(result.content)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 text-white text-sm rounded-lg transition-colors shadow-lg ${
-              isChatMode 
-                ? 'bg-green-600 hover:bg-green-500 shadow-green-900/20' 
-                : 'bg-blue-600 hover:bg-blue-500 shadow-blue-900/20'
-            }`}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors shadow-lg"
           >
-            {isChatMode ? <MessageCircle className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
-            {isChatMode ? "複製訊息" : "複製內容"}
+            <Copy className="w-4 h-4" />
+            <span className="hidden sm:inline">複製</span>
           </button>
         </div>
       </div>

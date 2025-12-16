@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
 import ResultDisplay from './components/ResultDisplay';
 import HistoryDrawer from './components/HistoryDrawer';
-import { GenerateRequest, GeneratedResult, HistoryItem } from './types';
+import HelpGuide from './components/HelpGuide';
+import SettingsModal from './components/SettingsModal';
+import { GenerateRequest, GeneratedResult, HistoryItem, AppSettings } from './types';
 import { generatePost } from './services/geminiService';
-import { Activity, Cpu, Globe, BarChart3, History } from 'lucide-react';
+import { Activity, Cpu, Globe, BarChart3, History, HelpCircle, Settings as SettingsIcon } from 'lucide-react';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -14,6 +16,15 @@ const App: React.FC = () => {
   // History State
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  
+  // Settings & Help State
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [settings, setSettings] = useState<AppSettings>({
+    geminiApiKey: '',
+    telegramBotToken: '',
+    telegramChatId: ''
+  });
 
   // Load history from localStorage on mount
   useEffect(() => {
@@ -25,12 +36,26 @@ const App: React.FC = () => {
         console.error("Failed to parse history", e);
       }
     }
+
+    const savedSettings = localStorage.getItem('app_settings');
+    if (savedSettings) {
+      try {
+        setSettings(JSON.parse(savedSettings));
+      } catch (e) {
+        console.error("Failed to parse settings", e);
+      }
+    }
   }, []);
 
   // Save history to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('post_history', JSON.stringify(history));
   }, [history]);
+
+  const handleSaveSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem('app_settings', JSON.stringify(newSettings));
+  };
 
   const addToHistory = (request: GenerateRequest, result: GeneratedResult) => {
     const newItem: HistoryItem = {
@@ -62,7 +87,8 @@ const App: React.FC = () => {
     setError(null);
     setResult(null);
     try {
-      const data = await generatePost(request);
+      // Pass the API Key from settings if available
+      const data = await generatePost(request, settings.geminiApiKey);
       setResult(data);
       // Automatically save to history
       addToHistory(request, data);
@@ -109,14 +135,37 @@ const App: React.FC = () => {
               </div>
             </div>
             
-            {/* History Toggle Button */}
-            <button
-              onClick={() => setIsHistoryOpen(true)}
-              className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-all ml-2"
-            >
-              <History className="w-4 h-4" />
-              <span className="hidden sm:inline">歷史紀錄</span>
-            </button>
+            <div className="flex items-center gap-2 border-l border-slate-700 pl-4 ml-2">
+              {/* Settings Button */}
+              <button
+                onClick={() => setIsSettingsOpen(true)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors relative"
+                title="應用程式設定"
+              >
+                <SettingsIcon className="w-5 h-5" />
+                {(!settings.geminiApiKey && !process.env.API_KEY) && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping"></span>
+                )}
+              </button>
+
+              {/* Help Button */}
+              <button
+                onClick={() => setIsHelpOpen(true)}
+                className="p-2 text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-colors"
+                title="Bot 設定教學"
+              >
+                <HelpCircle className="w-5 h-5" />
+              </button>
+
+              {/* History Toggle Button */}
+              <button
+                onClick={() => setIsHistoryOpen(true)}
+                className="flex items-center gap-2 px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white rounded-lg border border-slate-700 transition-all"
+              >
+                <History className="w-4 h-4" />
+                <span className="hidden sm:inline">歷史紀錄</span>
+              </button>
+            </div>
           </div>
         </div>
       </header>
@@ -132,7 +181,12 @@ const App: React.FC = () => {
                 輸入感興趣的科技新聞或股票代碼，AI 經由 <span className="text-blue-400 font-semibold">Google Search Grounding</span> 獲取最新即時資訊，並模擬專業分析師口吻撰寫貼文。
               </p>
             </div>
-            <InputForm onGenerate={handleGenerate} isLoading={loading} />
+            
+            {/* Pass loading state but not settings directly needed here unless for trending */}
+            <InputForm 
+              onGenerate={handleGenerate} 
+              isLoading={loading} 
+            />
             
             {/* Quick Tips */}
             <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-800">
@@ -154,10 +208,22 @@ const App: React.FC = () => {
                 <div>
                   <h3 className="font-semibold">發生錯誤</h3>
                   <p className="text-sm opacity-90">{error}</p>
+                  {error.includes("API Key") && (
+                    <button 
+                      onClick={() => setIsSettingsOpen(true)}
+                      className="mt-2 text-xs bg-red-800 hover:bg-red-700 text-white px-2 py-1 rounded"
+                    >
+                      開啟設定輸入 API Key
+                    </button>
+                  )}
                 </div>
               </div>
             ) : result ? (
-              <ResultDisplay result={result} onReset={handleReset} />
+              <ResultDisplay 
+                result={result} 
+                onReset={handleReset} 
+                settings={settings} // Pass settings for Telegram button
+              />
             ) : (
               <div className="h-full min-h-[400px] flex flex-col items-center justify-center bg-slate-900/30 border-2 border-dashed border-slate-800 rounded-xl text-slate-600">
                 <BarChart3 className="w-16 h-16 mb-4 opacity-20" />
@@ -179,7 +245,7 @@ const App: React.FC = () => {
         </div>
       </main>
 
-      {/* History Drawer */}
+      {/* Drawers and Modals */}
       <HistoryDrawer
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
@@ -187,6 +253,18 @@ const App: React.FC = () => {
         onSelect={handleSelectHistory}
         onDelete={deleteHistoryItem}
         onClearAll={clearHistory}
+      />
+
+      <HelpGuide 
+        isOpen={isHelpOpen} 
+        onClose={() => setIsHelpOpen(false)} 
+      />
+
+      <SettingsModal
+        isOpen={isSettingsOpen}
+        onClose={() => setIsSettingsOpen(false)}
+        settings={settings}
+        onSave={handleSaveSettings}
       />
     </div>
   );
