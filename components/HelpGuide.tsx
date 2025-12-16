@@ -49,9 +49,11 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
             {/* Step 2 */}
             <section className="space-y-2">
               <h4 className="font-semibold text-blue-400">2. 獲取頻道 ID</h4>
-              <p className="text-sm">建立頻道 -> 加入機器人為管理員 -> 發送一則訊息 -> 用瀏覽器打開：</p>
-              <div className="bg-black p-2 rounded border border-slate-600 font-mono text-xs text-blue-300 break-all select-all">
-                https://api.telegram.org/bot<span className="text-yellow-400">&lt;您的Token&gt;</span>/getUpdates
+              <p className="text-sm">建立頻道 → 加入機器人為管理員 → 發送一則訊息 → 用瀏覽器打開：</p>
+              <div className="bg-black p-2 rounded border border-slate-600 font-mono text-xs text-blue-300 break-all select-all flex flex-wrap">
+                <span>https://api.telegram.org/bot</span>
+                <span className="text-yellow-400">{'<您的Token>'}</span>
+                <span>/getUpdates</span>
               </div>
               <p className="text-xs text-slate-400">尋找 <code className="text-green-400">"id": -100xxxxxxx</code> 即為頻道 ID。</p>
             </section>
