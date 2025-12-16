@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import { GenerateRequest, GeneratedResult, Platform, GroundingSource, AppSettings } from "../types";
 import { sendToTelegram } from "./telegramService";
 
@@ -10,6 +10,32 @@ const getAiClient = (apiKey?: string) => {
     throw new Error("API Key 未設定。請點擊右上角「設定」按鈕輸入 Gemini API Key，或在專案 .env 檔案中設定。");
   }
   return new GoogleGenAI({ apiKey: key });
+};
+
+/**
+ * Helper function to retry operations on 503 (Overloaded) errors
+ * Uses exponential backoff strategy
+ */
+const retryOperation = async <T>(
+  operation: () => Promise<T>, 
+  retries = 3, 
+  delay = 1000
+): Promise<T> => {
+  try {
+    return await operation();
+  } catch (error: any) {
+    const isOverloaded = error.message?.includes('503') || 
+                         error.message?.includes('overloaded') || 
+                         error.status === 503 ||
+                         error.code === 503;
+                         
+    if (retries > 0 && isOverloaded) {
+      console.warn(`⚠️ API Overloaded (503). Retrying in ${delay}ms... (${retries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return retryOperation(operation, retries - 1, delay * 2); // Double the delay for next retry
+    }
+    throw error;
+  }
 };
 
 export const getTrendingTopics = async (apiKey?: string): Promise<string[]> => {
@@ -38,14 +64,16 @@ export const getTrendingTopics = async (apiKey?: string): Promise<string[]> => {
 
   try {
     const ai = getAiClient(apiKey);
-    const response = await ai.models.generateContent({
+    
+    // Wrap in retry logic
+    const response = await retryOperation<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
         tools: [{ googleSearch: {} }],
         temperature: 0.5,
       },
-    });
+    }));
 
     const text = response.text || "";
     // Clean up and split by semicolon, filter empty
@@ -152,7 +180,8 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
   const prompt = `Topic: "${topic}"`;
 
   try {
-    const response = await ai.models.generateContent({
+    // Wrap in retry logic
+    const response = await retryOperation<GenerateContentResponse>(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: prompt,
       config: {
@@ -160,7 +189,7 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
         tools: [{ googleSearch: {} }],
         temperature: 0.5, // Reduced temperature for better factual accuracy
       },
-    });
+    }));
 
     const rawText = response.text || "無法生成內容，請稍後再試。";
     
@@ -292,11 +321,12 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
     - Return ONLY the topic name as a concise string.
   `;
   
-  const trendResp = await ai.models.generateContent({
+  // Wrap in retry logic
+  const trendResp = await retryOperation<GenerateContentResponse>(() => ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: trendPrompt,
     config: { tools: [{ googleSearch: {} }], temperature: 0.3 }
-  });
+  }));
   
   let topic = trendResp.text?.trim() || "今日市場重點";
   topic = topic.replace(/^["']|["']$/g, '').replace(/^Topic:\s*/i, '').replace(/\.$/, '');
@@ -317,11 +347,12 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
     - Data Accuracy: Use Google Search.
   `;
 
-  const contentResp = await ai.models.generateContent({
+  // Wrap in retry logic
+  const contentResp = await retryOperation<GenerateContentResponse>(() => ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: contentPrompt,
     config: { tools: [{ googleSearch: {} }] }
-  });
+  }));
 
   const postContent = contentResp.text || "";
 
@@ -342,7 +373,9 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
 
   // 6. Image Prompt
   logCallback("🎨 生成配圖指令中...");
-  const imagePromptResp = await ai.models.generateContent({
+  // Image prompt generation is less critical, maybe allow fail or retry fewer times?
+  // Let's use standard retry for consistency.
+  const imagePromptResp = await retryOperation<GenerateContentResponse>(() => ai.models.generateContent({
     model: "gemini-2.5-flash",
     contents: `
       Create a high-quality Midjourney prompt (in English) for: "${topic}". 
@@ -350,7 +383,7 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
       Context: ${isMorningSession ? "Wall Street" : "Taiwan Tech"}.
       Return ONLY the prompt string.
     `,
-  });
+  }));
   const imagePrompt = `🎨 建議配圖指令 (Cyberpunk):\n\n\`${(imagePromptResp.text || "").trim()}\``;
 
   if (settings.telegramBotToken && settings.telegramChatId) {
