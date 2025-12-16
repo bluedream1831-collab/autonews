@@ -1,0 +1,30 @@
+name: Daily Market Insight Bot
+
+on:
+  schedule:
+    # 每天 UTC 時間 00:00 執行 (約台灣時間早上 8:00)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # 允許在 GitHub 頁面上手動按鈕觸發測試
+
+jobs:
+  build-and-post:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm install @google/genai
+
+      - name: Run Auto Post Script
+        env:
+          API_KEY: ${{ secrets.API_KEY }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: node scripts/daily-auto-post.mjs
