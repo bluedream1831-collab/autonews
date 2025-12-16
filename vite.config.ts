@@ -12,5 +12,14 @@ export default defineConfig(({ mode }) => {
       // Use || '' to ensure it is always a string, preventing "process is not defined" errors in browser if key is missing.
       'process.env.API_KEY': JSON.stringify(env.API_KEY || ''),
     },
+    server: {
+      proxy: {
+        '/telegram-api': {
+          target: 'https://api.telegram.org',
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/telegram-api/, ''),
+        },
+      },
+    },
   };
 });
