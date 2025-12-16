@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Terminal, Bot, MessageSquare, ExternalLink, Globe, AlertTriangle, ChevronRight, RefreshCw, Key, Play } from 'lucide-react';
+import { X, Terminal, Bot, MessageSquare, ExternalLink, Globe, AlertTriangle, ChevronRight, RefreshCw, Key, Play, Sun, Moon, CalendarClock, Smartphone } from 'lucide-react';
 
 interface HelpGuideProps {
   isOpen: boolean;
@@ -16,7 +16,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-slate-900 z-10 sticky top-0">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Bot className="w-6 h-6 text-blue-400" />
-            Telegram 機器人設定教學
+            自動化機器人設定教學
           </h2>
           <button 
             onClick={onClose} 
@@ -28,164 +28,112 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
 
         {/* Content */}
         <div className="p-6 space-y-8 text-slate-300">
+
+          <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg flex gap-3 text-sm text-blue-200">
+             <Smartphone className="w-5 h-5 flex-shrink-0 mt-0.5" />
+             <div>
+               此工具支援同時發送到 <strong>Telegram</strong> 與 <strong>Line</strong>。請依據您的需求設定對應的 Secrets。
+             </div>
+          </div>
           
-          {/* Step 1 */}
-          <section className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-              <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">STEP 1</span>
-              建立機器人 (Bot)
-            </h3>
-            <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800 text-sm space-y-2">
-              <p>1. 在 Telegram 搜尋 <strong className="text-blue-300">@BotFather</strong> (這是官方的機器人管理員)。</p>
-              <p>2. 輸入指令 <code className="bg-slate-800 px-1 py-0.5 rounded text-orange-300">/newbot</code> 開始建立。</p>
-              <p>3. 依照指示輸入「顯示名稱」和「Username」(必須以 bot 結尾)。</p>
-              <p>4. 成功後，複製 <strong className="text-green-400">HTTP API Token</strong> (紅色的那一串)。</p>
-            </div>
-          </section>
-
-          {/* Step 2 */}
-          <section className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-              <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">STEP 2</span>
-              建立頻道並加入機器人
-            </h3>
-            <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800 text-sm space-y-2">
-              <p>1. 建立一個新的 Telegram 頻道 (Channel)。</p>
-              <p>2. 點擊頻道上方名稱 &gt; <strong className="text-slate-200">管理員 (Administrators)</strong> &gt; 新增管理員。</p>
-              <p>3. 搜尋您剛剛建立的機器人 ID 並加入。</p>
-              <p className="text-orange-400 font-medium flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
-                重要：請在頻道內隨便發送一則訊息 (如 "hello")，讓機器人偵測到頻道存在。
-              </p>
-            </div>
-          </section>
-
-          {/* Step 3 */}
-          <section className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-              <span className="bg-blue-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">STEP 3</span>
-              獲取頻道 ID (兩種方法)
-            </h3>
+          {/* Section: Telegram */}
+          <div className="border-l-4 border-blue-500 pl-4 space-y-6">
+            <h3 className="text-xl font-bold text-white">📡 Telegram 設定</h3>
             
-            {/* Method A: Browser (Recommended) */}
-            <div className="bg-slate-800 p-5 rounded-lg border border-slate-700 shadow-inner ring-1 ring-blue-500/30">
-               <div className="flex items-center gap-2 mb-3">
-                  <div className="bg-green-500/20 text-green-300 text-xs font-bold px-2 py-0.5 rounded border border-green-500/30 flex items-center gap-1">
-                    <Globe className="w-3 h-3" />
-                    推薦方法
-                  </div>
-                  <h4 className="text-white font-medium text-sm">瀏覽器直接查詢 (最簡單，免安裝)</h4>
-               </div>
-               
-               <div className="text-sm text-slate-300 space-y-3">
-                  <p>不需要執行任何指令，直接用瀏覽器就能看到：</p>
-                  <ol className="list-decimal list-inside space-y-2 text-slate-400 ml-1">
-                    <li>確保您已經在頻道內發送了一則訊息。</li>
-                    <li>複製以下網址，並將 <code className="text-yellow-400">&lt;您的Token&gt;</code> 換成您在 Step 1 拿到的 Token：</li>
-                  </ol>
-                  
-                  <div className="bg-black p-3 rounded border border-slate-600 font-mono text-xs text-blue-300 break-all select-all">
-                    https://api.telegram.org/bot<span className="text-yellow-400">&lt;您的Token&gt;</span>/getUpdates
-                  </div>
+            {/* Step 1 */}
+            <section className="space-y-2">
+              <h4 className="font-semibold text-blue-400">1. 建立機器人</h4>
+              <p className="text-sm">在 Telegram 搜尋 <strong className="text-white">@BotFather</strong>，輸入 <code className="bg-slate-800 px-1 rounded">/newbot</code> 建立，並取得 <strong>HTTP API Token</strong>。</p>
+            </section>
 
-                  {/* Troubleshooting Alert */}
-                  <div className="bg-orange-900/20 border border-orange-500/20 p-3 rounded-lg mt-3 animate-pulse-subtle">
-                    <div className="flex items-start gap-2">
-                      <AlertTriangle className="w-4 h-4 text-orange-400 mt-0.5 flex-shrink-0" />
-                      <div className="text-xs text-orange-200">
-                        <p className="font-bold mb-1 flex items-center gap-1">
-                          看到 <code>result: []</code> (空陣列) 嗎？
-                        </p>
-                        <p className="opacity-90">這代表機器人暫時沒收到新訊息。請嘗試：</p>
-                        <ul className="list-disc list-inside mt-1 space-y-1 opacity-80">
-                          <li>回到頻道，<strong>發送一則新訊息</strong> (例如 "Hi")。</li>
-                          <li>發送後，<strong>重新整理</strong>瀏覽器頁面。</li>
-                          <li>若還是空的，請檢查機器人是否為頻道管理員。</li>
-                        </ul>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="bg-slate-900/50 p-3 rounded text-xs text-slate-400 border border-slate-800 mt-2">
-                    <span className="text-green-400 font-bold">👀 找到資料後看哪裡？</span><br/>
-                    尋找一段類似這樣的文字：<br/>
-                    <code className="text-slate-300">"chat":{"{"}"id": <span className="text-green-400 font-bold">-100123456789</span>, "title": "您的頻道名稱" ...</code>
-                    <br/>那個 <span className="text-green-400">-100 開頭的數字</span> 就是您的頻道 ID。
-                  </div>
-               </div>
-            </div>
-
-            {/* Method B: Terminal (Advanced) */}
-            <details className="group">
-              <summary className="flex items-center gap-2 text-slate-500 text-sm cursor-pointer hover:text-slate-300 transition-colors py-2 select-none">
-                <ChevronRight className="w-4 h-4 group-open:rotate-90 transition-transform" />
-                <span>方法二：使用終端機 (需要安裝 Node.js)</span>
-              </summary>
-              <div className="mt-2 pl-6 border-l-2 border-slate-800 ml-2">
-                <div className="bg-slate-900/50 p-4 rounded-lg border border-slate-800">
-                  <div className="flex items-start gap-3 mb-3">
-                     <AlertTriangle className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                     <p className="text-xs text-slate-400">
-                       如果您在終端機看到 <span className="text-red-400">npm : 無法辨識</span> 錯誤，代表您電腦沒安裝開發環境，請直接使用上面的「瀏覽器方法」即可。
-                     </p>
-                  </div>
-                  <div className="bg-black p-3 rounded border border-slate-600 font-mono text-xs text-green-400 break-all">
-                    npm run find-id <span className="text-yellow-400">&lt;您的Token&gt;</span>
-                  </div>
-                </div>
+            {/* Step 2 */}
+            <section className="space-y-2">
+              <h4 className="font-semibold text-blue-400">2. 獲取頻道 ID</h4>
+              <p className="text-sm">建立頻道 -> 加入機器人為管理員 -> 發送一則訊息 -> 用瀏覽器打開：</p>
+              <div className="bg-black p-2 rounded border border-slate-600 font-mono text-xs text-blue-300 break-all select-all">
+                https://api.telegram.org/bot<span className="text-yellow-400">&lt;您的Token&gt;</span>/getUpdates
               </div>
-            </details>
-          </section>
+              <p className="text-xs text-slate-400">尋找 <code className="text-green-400">"id": -100xxxxxxx</code> 即為頻道 ID。</p>
+            </section>
+          </div>
 
-          {/* Step 4: GitHub Secrets */}
+          <hr className="border-slate-800" />
+
+          {/* Section: Line (New) */}
+          <div className="border-l-4 border-green-500 pl-4 space-y-6">
+            <h3 className="text-xl font-bold text-white">💬 Line 設定 (選用)</h3>
+            
+            <section className="space-y-3 text-sm">
+              <p>若要啟用 Line 自動發文，請至 <a href="https://developers.line.biz/" target="_blank" className="text-green-400 underline">Line Developers Console</a>：</p>
+              <ol className="list-decimal list-inside space-y-2 text-slate-300 ml-1">
+                <li>建立一個 Provider 和 <strong>Messaging API</strong> Channel。</li>
+                <li>在 <strong>Messaging API</strong> 頁籤下方，產生 <strong className="text-white">Channel access token (long-lived)</strong>。</li>
+                <li>在 <strong>Basic settings</strong> 頁籤下方，找到 <strong className="text-white">Your User ID</strong> (個人測試用)；若要發到群組，需將 Line Bot 邀入群組並透過 Webhook 獲取 Group ID (較進階)。</li>
+              </ol>
+            </section>
+          </div>
+
+          <hr className="border-slate-800" />
+
+          {/* Section: GitHub Secrets */}
           <section className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-              <span className="bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">STEP 4</span>
+              <span className="bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">FINAL STEP</span>
               設定 GitHub Secrets
             </h3>
             <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800 text-sm space-y-3">
-              <p>請至 GitHub 專案的 <span className="text-slate-200 font-bold">Settings &gt; Secrets and variables &gt; Actions</span> 建立以下 3 個 Secret：</p>
+              <p>請至 GitHub 專案的 <span className="text-slate-200 font-bold">Settings &gt; Secrets and variables &gt; Actions</span> 建立以下 Secrets：</p>
               
-              <div className="space-y-2 mt-2">
-                <div className="flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700">
-                  <code className="text-purple-300 font-bold font-mono">API_KEY</code>
-                  <span className="text-slate-400 text-xs">您的 Gemini API 金鑰</span>
+              <div className="space-y-2 mt-2 font-mono text-xs">
+                <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
+                  <span className="text-purple-300">API_KEY</span>
+                  <span className="text-slate-500">Gemini Key</span>
                 </div>
-                <div className="flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700">
-                  <code className="text-purple-300 font-bold font-mono">TELEGRAM_BOT_TOKEN</code>
-                  <span className="text-slate-400 text-xs">Bot Token</span>
+                <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
+                  <span className="text-blue-300">TELEGRAM_BOT_TOKEN</span>
+                  <span className="text-slate-500">TG Bot Token</span>
                 </div>
-                <div className="flex items-center justify-between bg-slate-800 p-2 rounded border border-slate-700">
-                  <code className="text-purple-300 font-bold font-mono">TELEGRAM_CHAT_ID</code>
-                  <span className="text-slate-400 text-xs">-100... ID</span>
+                <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
+                  <span className="text-blue-300">TELEGRAM_CHAT_ID</span>
+                  <span className="text-slate-500">TG Channel ID</span>
+                </div>
+                {/* Line Secrets */}
+                <div className="flex justify-between bg-slate-800 p-2 rounded border border-green-900/30 border-dashed">
+                  <span className="text-green-400">LINE_CHANNEL_ACCESS_TOKEN</span>
+                  <span className="text-slate-500">選用：Line Token</span>
+                </div>
+                <div className="flex justify-between bg-slate-800 p-2 rounded border border-green-900/30 border-dashed">
+                  <span className="text-green-400">LINE_USER_ID</span>
+                  <span className="text-slate-500">選用：發送對象 ID</span>
                 </div>
               </div>
             </div>
           </section>
 
-          {/* Step 5: Test (New) */}
-          <section className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-              <span className="bg-green-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">STEP 5</span>
-              馬上測試 (Run Workflow)
+          {/* Automated Schedule Info */}
+          <section className="space-y-4 pt-6 border-t border-slate-800">
+            <h3 className="text-lg font-bold text-white flex items-center gap-2">
+              <CalendarClock className="w-6 h-6 text-orange-400" />
+              📅 自動發文排程
             </h3>
-            <div className="bg-slate-800 p-4 rounded-lg border border-slate-700 text-sm space-y-4 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-4 opacity-10">
-                 <Play className="w-24 h-24 text-white" />
-               </div>
-               <p className="text-slate-300 relative z-10">設定好 Secrets 後，請依照以下步驟手動觸發一次，確認機器人能正常發文：</p>
-               
-               <ol className="list-decimal list-inside space-y-2 text-slate-300 relative z-10">
-                 <li>回到 GitHub 專案頁面，點擊上方的 <strong className="text-white bg-slate-700 px-1 rounded">Actions</strong> 頁籤。</li>
-                 <li>在左側列表中點選 <strong className="text-white">Daily Market Insight Bot</strong>。</li>
-                 <li>右側會出現 <strong className="text-blue-400 bg-blue-900/30 px-2 py-0.5 rounded border border-blue-500/50">Run workflow</strong> 按鈕，點擊它。</li>
-                 <li>再次點擊綠色的 <span className="text-green-400">Run workflow</span> 確認。</li>
-               </ol>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              {/* Morning Report */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-orange-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Sun className="w-4 h-4 text-orange-500" />
+                      <span className="font-bold text-orange-200">08:00 AM 早報</span>
+                    </div>
+                    <p className="text-slate-400">鎖定：美股收盤、聯準會政策、國際巨頭。</p>
+              </div>
 
-               <div className="bg-green-900/20 border border-green-500/30 p-3 rounded text-green-200 text-xs flex items-center gap-2 relative z-10">
-                 <Bot className="w-5 h-5 flex-shrink-0" />
-                 <span>等待約 30-60 秒，如果看到 ✅ 綠色勾勾，請檢查您的 Telegram 頻道，應該就會收到最新的 AI 分析貼文囉！</span>
-               </div>
+              {/* Evening Report */}
+              <div className="bg-slate-800/50 p-4 rounded-xl border border-blue-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Moon className="w-4 h-4 text-blue-500" />
+                      <span className="font-bold text-blue-200">17:00 PM 晚報</span>
+                    </div>
+                    <p className="text-slate-400">鎖定：台股盤後、半導體供應鏈、亞洲市場。</p>
+              </div>
             </div>
           </section>
 

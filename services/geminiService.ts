@@ -76,18 +76,20 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
       - Structure:
         1. Start with a catchy header like 【📊 市場快訊】 or 【🚀 科技重點】.
         2. Use bullet points (•) for readability on small screens.
-        3. NO bold markdown (**text**) if possible, as Line does not support it well. Use bracket indicators instead like [重點].
-        4. Keep it concise (under 400 words).
-        5. End with a clear actionable thought or observation.
-      - Emojis: Use generously to separate sections.
+        3. **CRITICAL**: Include a dedicated "Deep Insight (深度觀點)" section. 
+           - Do NOT limit this to one sentence. 
+           - Provide a rich analysis (3-4 sentences) explaining the structural impact, money flow, or supply chain ripple effects.
+           - Tell the user "Why this matters" and "Who really benefits".
+        4. Keep it concise (under 600 words).
+        5. End with a clear actionable thought.
     `;
   } else {
     formatInstruction = `
       - Format: Optimized for ${platform}.
-      - LinkedIn: Professional, structured (Hook -> Analysis -> Conclusion), use bullet points, moderate emojis.
-      - Twitter/X: Concise, punchy, maybe a thread structure (1/x), hashtags.
-      - Facebook: Engaging, slightly more conversational but still expert, questions to drive comments.
-      - 方格子 (Vocus) / Blog: Longer form, detailed analysis, h2/h3 headers, clear structure. Use markdown for styling.
+      - LinkedIn: Professional, structured (Hook -> Analysis -> Deep Insight -> Conclusion).
+      - Twitter/X: Concise, punchy, thread-like.
+      - Facebook: Engaging, expert tone.
+      - **CRITICAL**: For all platforms, include a "Deep Insight" paragraph that explains the "Why" and "So What" simply yet profoundly. Do not be superficial.
     `;
   }
 
@@ -103,6 +105,10 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
     YOUR EXPERTISE:
     1. Technology Sector (AI, Semiconductors, SaaS, Hardware).
     2. Global Financial Markets (US, Taiwan, Japan, Europe, Crypto).
+    
+    YOUR WRITING STYLE:
+    - Insightful: Do not just list facts. Explain the mechanism (e.g., "Yields up means tech valuation down because...").
+    - Accessible: Use simple analogies for complex financial concepts.
     
     YOUR TASK:
     1. Generate a high-quality post based on: "${topic}" using the "Google Search" tool for latest data.
