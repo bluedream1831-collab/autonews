@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GeneratedResult, Platform, AppSettings } from '../types';
-import { Copy, ExternalLink, RefreshCw, Smartphone, Sparkles, Send, FileText, Share2 } from 'lucide-react';
+import { Copy, ExternalLink, RefreshCw, Smartphone, Sparkles, Send, Share2 } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { sendToTelegram } from '../services/telegramService';
 
@@ -134,7 +134,7 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, settings
                <div className="flex flex-col items-start animate-slide-up">
                  <div className="bg-[#2A2A2A] p-4 rounded-2xl rounded-tl-none relative shadow-xl text-slate-200 font-sans text-[15px] leading-relaxed border border-slate-700/50 max-w-[95%]">
                     {/* Tail SVG */}
-                    <svg className="absolute top-0 -left-[9px] w-[10px] h-[15px] fill-[#2A2A2A] stroke-slate-700/50 stroke-[0.5px]" style={{ strokeRight: 'none' }} viewBox="0 0 10 15">
+                    <svg className="absolute top-0 -left-[9px] w-[10px] h-[15px] fill-[#2A2A2A] stroke-slate-700/50 stroke-[0.5px]" viewBox="0 0 10 15">
                         <path d="M10,0 L0,0 C0,0 2,5 10,15 L10,0 Z" stroke="none" />
                         <path d="M0,0 C0,0 2,5 10,15" fill="none" className="stroke-slate-700/50" />
                     </svg>
