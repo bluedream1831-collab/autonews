@@ -300,7 +300,7 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
     config: { tools: [{ googleSearch: {} }] }
   });
 
-  const postContent = contentResp.text;
+  const postContent = contentResp.text || "";
 
   // 5. Send Messages
   logCallback("📨 準備發送訊息...");
@@ -340,7 +340,7 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
       Return ONLY the prompt string.
     `,
   });
-  const imagePrompt = `🎨 建議配圖指令 (Cyberpunk):\n\n\`${imagePromptResp.text.trim()}\``;
+  const imagePrompt = `🎨 建議配圖指令 (Cyberpunk):\n\n\`${(imagePromptResp.text || "").trim()}\``;
 
   if (settings.telegramBotToken && settings.telegramChatId) {
      await sendToTelegram(settings.telegramBotToken, settings.telegramChatId, imagePrompt).catch(() => {});

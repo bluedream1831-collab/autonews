@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Terminal, Bot, MessageSquare, ExternalLink, Globe, AlertTriangle, ChevronRight, RefreshCw, Key, Play, Sun, Moon, CalendarClock, Smartphone } from 'lucide-react';
+import { X, Bot, Sun, Moon, CalendarClock, Smartphone } from 'lucide-react';
 
 interface HelpGuideProps {
   isOpen: boolean;

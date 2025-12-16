@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { GeneratedResult, Platform, AppSettings } from '../types';
-import { Copy, ExternalLink, RefreshCw, MessageCircle, Smartphone, Sparkles, Send, CheckCircle, AlertCircle } from 'lucide-react';
+import { Copy, ExternalLink, RefreshCw, Smartphone, Sparkles, Send } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { sendToTelegram } from '../services/telegramService';
 
