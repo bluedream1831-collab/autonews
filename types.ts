@@ -53,4 +53,6 @@ export interface AppSettings {
   geminiApiKey: string;
   telegramBotToken: string;
   telegramChatId: string;
+  lineChannelAccessToken: string; // 新增
+  lineUserId: string;             // 新增
 }

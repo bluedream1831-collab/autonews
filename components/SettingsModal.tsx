@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Key, MessageSquare, ShieldCheck, Eye, EyeOff } from 'lucide-react';
+import { X, Save, Key, MessageSquare, ShieldCheck, Eye, EyeOff, Zap, PlayCircle, Loader2, Smartphone } from 'lucide-react';
 import { AppSettings } from '../types';
+import { runManualAutoPost } from '../services/geminiService';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -13,10 +14,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [showKey, setShowKey] = useState(false);
   const [showToken, setShowToken] = useState(false);
+  const [showLineToken, setShowLineToken] = useState(false);
+
+  // Manual Trigger State
+  const [isRunningAuto, setIsRunningAuto] = useState(false);
+  const [autoLog, setAutoLog] = useState<string>("");
 
   useEffect(() => {
     if (isOpen) {
       setFormData(settings);
+      setAutoLog(""); // reset log on open
     }
   }, [isOpen, settings]);
 
@@ -28,10 +35,33 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
     onClose();
   };
 
+  const handleRunAutoPost = async () => {
+    if (!formData.geminiApiKey) {
+      setAutoLog("❌ 錯誤：請先輸入 Gemini API Key");
+      return;
+    }
+    
+    // Save current settings first to ensure logic uses latest inputs
+    onSave(formData);
+
+    setIsRunningAuto(true);
+    setAutoLog("⏳ 初始化中...");
+    
+    try {
+      await runManualAutoPost(formData, (msg) => {
+        setAutoLog(prev => prev + "\n" + msg);
+      });
+    } catch (error) {
+      setAutoLog(prev => prev + "\n❌ 執行失敗: " + (error instanceof Error ? error.message : "未知錯誤"));
+    } finally {
+      setIsRunningAuto(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-lg w-full">
-        <div className="flex items-center justify-between p-6 border-b border-slate-800">
+      <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto custom-scrollbar">
+        <div className="flex items-center justify-between p-6 border-b border-slate-800 sticky top-0 bg-slate-900 z-10">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <ShieldCheck className="w-6 h-6 text-primary-500" />
             應用程式設定
@@ -69,19 +99,16 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
             </p>
           </div>
 
-          <div className="border-t border-slate-800 my-4"></div>
+          <div className="border-t border-slate-800"></div>
 
           {/* Telegram Settings */}
           <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider">
-              Telegram 發送設定
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <MessageSquare className="w-4 h-4" /> Telegram 發送設定
             </h3>
             
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-blue-400" />
-                Bot Token
-              </label>
+              <label className="text-sm font-medium text-slate-300">Bot Token</label>
               <div className="relative">
                 <input
                   type={showToken ? "text" : "password"}
@@ -101,9 +128,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">
-                Channel ID
-              </label>
+              <label className="text-sm font-medium text-slate-300">Channel ID</label>
               <input
                 type="text"
                 value={formData.telegramChatId}
@@ -111,19 +136,91 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                 placeholder="-100..."
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-primary-500 outline-none"
               />
-              <p className="text-xs text-slate-500">
-                請輸入包含 -100 的完整 ID。
-              </p>
             </div>
           </div>
 
-          <div className="pt-4 flex justify-end gap-3">
+          <div className="border-t border-slate-800"></div>
+
+          {/* Line Settings */}
+          <div className="space-y-4">
+            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+              <Smartphone className="w-4 h-4" /> Line 發送設定
+            </h3>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">Channel Access Token</label>
+              <div className="relative">
+                <input
+                  type={showLineToken ? "text" : "password"}
+                  value={formData.lineChannelAccessToken || ''}
+                  onChange={(e) => setFormData({ ...formData, lineChannelAccessToken: e.target.value })}
+                  placeholder="long-lived access token..."
+                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 pr-10 text-white focus:ring-2 focus:ring-green-500 outline-none"
+                />
+                 <button
+                  type="button"
+                  onClick={() => setShowLineToken(!showLineToken)}
+                  className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
+                >
+                  {showLineToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-300">User ID / Group ID</label>
+              <input
+                type="text"
+                value={formData.lineUserId || ''}
+                onChange={(e) => setFormData({ ...formData, lineUserId: e.target.value })}
+                placeholder="Uxxxxxxxx..."
+                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-green-500 outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="border-t border-slate-800 pt-4">
+             <div className="bg-slate-800/50 p-4 rounded-lg border border-slate-700">
+               <div className="flex items-center justify-between mb-2">
+                 <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                   <Zap className="w-4 h-4 text-yellow-400" />
+                   手動觸發自動排程
+                 </h4>
+               </div>
+               <p className="text-xs text-slate-400 mb-4">
+                 模擬每天早上 8:00 (美股) 或下午 5:00 (台股) 的自動執行邏輯，立即搜尋並發送一次。
+               </p>
+               
+               <button
+                type="button"
+                onClick={handleRunAutoPost}
+                disabled={isRunningAuto}
+                className={`w-full py-2 px-4 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-all ${
+                   isRunningAuto 
+                   ? 'bg-slate-700 text-slate-400 cursor-not-allowed' 
+                   : 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white shadow-lg'
+                }`}
+               >
+                 {isRunningAuto ? <Loader2 className="w-4 h-4 animate-spin" /> : <PlayCircle className="w-4 h-4" />}
+                 {isRunningAuto ? '正在執行中...' : '立即執行一次'}
+               </button>
+
+               {/* Log Output */}
+               {autoLog && (
+                 <div className="mt-3 p-3 bg-black/50 rounded border border-slate-700 font-mono text-xs text-green-400 whitespace-pre-wrap max-h-32 overflow-y-auto">
+                   {autoLog}
+                 </div>
+               )}
+             </div>
+          </div>
+
+          <div className="pt-2 flex justify-end gap-3 sticky bottom-0 bg-slate-900 pb-2">
             <button
               type="button"
               onClick={onClose}
               className="px-4 py-2 text-slate-300 hover:bg-slate-800 rounded-lg transition-colors"
             >
-              取消
+              關閉
             </button>
             <button
               type="submit"
