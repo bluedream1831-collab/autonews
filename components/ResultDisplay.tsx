@@ -144,7 +144,14 @@ const ResultDisplay: React.FC<ResultDisplayProps> = ({ result, onReset, settings
                     
                     {/* Message Meta */}
                     <div className="mt-2 pt-1 flex items-center justify-end gap-1.5 opacity-60 select-none">
-                       <span className="text-[10px] text-slate-400">{new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                       <span className="text-[10px] text-slate-400">
+                         {new Date().toLocaleTimeString("zh-TW", { 
+                           timeZone: "Asia/Taipei", 
+                           hour: '2-digit', 
+                           minute: '2-digit', 
+                           hour12: false 
+                         })}
+                       </span>
                     </div>
                  </div>
                </div>

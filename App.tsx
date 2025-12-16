@@ -61,7 +61,15 @@ const App: React.FC = () => {
     const newItem: HistoryItem = {
       id: crypto.randomUUID(),
       topic: request.topic,
-      timestamp: new Date().toLocaleString('zh-TW'),
+      timestamp: new Date().toLocaleString('zh-TW', { 
+        timeZone: 'Asia/Taipei',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      }),
       result: result
     };
     setHistory(prev => [newItem, ...prev]);
@@ -80,6 +88,10 @@ const App: React.FC = () => {
   const handleSelectHistory = (item: HistoryItem) => {
     setResult(item.result);
     setError(null);
+    // Scroll to result smoothly
+    setTimeout(() => {
+      document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
   };
 
   const handleGenerate = async (request: GenerateRequest) => {
@@ -92,6 +104,12 @@ const App: React.FC = () => {
       setResult(data);
       // Automatically save to history
       addToHistory(request, data);
+      
+      // Scroll to result smoothly after generation
+      setTimeout(() => {
+        document.getElementById('result-section')?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
+
     } catch (err) {
       setError(err instanceof Error ? err.message : '發生未預期的錯誤');
     } finally {
@@ -102,6 +120,7 @@ const App: React.FC = () => {
   const handleReset = () => {
     setResult(null);
     setError(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -172,11 +191,11 @@ const App: React.FC = () => {
 
       {/* Main Content */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="flex flex-col gap-10">
           
-          {/* Left Column: Input */}
-          <div className="lg:col-span-5 space-y-6">
-            <div className="prose prose-invert prose-sm">
+          {/* Top Section: Input - Centered and constrained */}
+          <div className="w-full max-w-3xl mx-auto space-y-6">
+            <div className="prose prose-invert prose-sm text-center mx-auto">
               <p className="text-slate-400 leading-relaxed">
                 輸入感興趣的科技新聞或股票代碼，AI 經由 <span className="text-blue-400 font-semibold">Google Search Grounding</span> 獲取最新即時資訊，並模擬專業分析師口吻撰寫貼文。
               </p>
@@ -200,10 +219,10 @@ const App: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Column: Output */}
-          <div className="lg:col-span-7">
+          {/* Bottom Section: Output - Full width */}
+          <div id="result-section" className="w-full transition-all duration-500 ease-in-out">
             {error ? (
-              <div className="bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-lg flex items-start gap-3">
+              <div className="max-w-3xl mx-auto bg-red-900/20 border border-red-500/50 text-red-200 p-4 rounded-lg flex items-start gap-3 animate-fade-in">
                 <div className="mt-1">⚠️</div>
                 <div>
                   <h3 className="font-semibold">發生錯誤</h3>
@@ -219,23 +238,24 @@ const App: React.FC = () => {
                 </div>
               </div>
             ) : result ? (
-              <ResultDisplay 
-                result={result} 
-                onReset={handleReset} 
-                settings={settings} // Pass settings for Telegram button
-              />
+              <div className="animate-fade-in-up">
+                <ResultDisplay 
+                  result={result} 
+                  onReset={handleReset} 
+                  settings={settings} // Pass settings for Telegram button
+                />
+              </div>
             ) : (
-              <div className="h-full min-h-[400px] flex flex-col items-center justify-center bg-slate-900/30 border-2 border-dashed border-slate-800 rounded-xl text-slate-600">
-                <BarChart3 className="w-16 h-16 mb-4 opacity-20" />
-                <p className="text-lg font-medium">等待生成指令...</p>
-                <p className="text-sm">在左側輸入主題以開始分析</p>
+              <div className="max-w-3xl mx-auto h-48 flex flex-col items-center justify-center bg-slate-900/30 border-2 border-dashed border-slate-800 rounded-xl text-slate-600">
+                <BarChart3 className="w-12 h-12 mb-3 opacity-20" />
+                <p className="text-base font-medium">等待生成指令...</p>
                 {history.length > 0 && (
                   <button 
                     onClick={() => setIsHistoryOpen(true)}
-                    className="mt-4 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                    className="mt-2 text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
                   >
                     <History className="w-3 h-3" />
-                    查看 {history.length} 筆歷史紀錄
+                    查看歷史紀錄
                   </button>
                 )}
               </div>

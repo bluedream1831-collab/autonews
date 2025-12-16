@@ -13,7 +13,12 @@ const getAiClient = (apiKey?: string) => {
 };
 
 export const getTrendingTopics = async (apiKey?: string): Promise<string[]> => {
-  const today = new Date().toLocaleDateString("zh-TW", { year: 'numeric', month: 'long', day: 'numeric' });
+  const today = new Date().toLocaleDateString("zh-TW", { 
+    timeZone: "Asia/Taipei",
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric' 
+  });
   
   const prompt = `
     Identify 6 current trending specific keywords, stock tickers, or short news headlines for today (${today}).
@@ -66,7 +71,13 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
   const ai = getAiClient(apiKey);
 
   // Get current date in a readable format for the AI
-  const today = new Date().toLocaleDateString("zh-TW", { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+  const today = new Date().toLocaleDateString("zh-TW", { 
+    timeZone: "Asia/Taipei",
+    year: 'numeric', 
+    month: 'long', 
+    day: 'numeric', 
+    weekday: 'long' 
+  });
 
   // Logic to adjust instruction based on platform
   let formatInstruction = '';
@@ -171,7 +182,15 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
       content,
       imagePrompt,
       sources: uniqueSources,
-      timestamp: new Date().toLocaleTimeString(),
+      timestamp: new Date().toLocaleString("zh-TW", { 
+        timeZone: "Asia/Taipei",
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit', 
+        hour: '2-digit', 
+        minute: '2-digit',
+        hour12: false
+      }),
       platform: platform 
     };
 

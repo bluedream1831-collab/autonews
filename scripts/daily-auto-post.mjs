@@ -18,7 +18,7 @@ const IMAGE_STYLES = [
 ];
 
 if (!API_KEY) {
-  console.error("❌ 缺少 API_KEY");
+  console.error("❌ 缺少 API_KEY。請檢查 GitHub Secrets 設定。");
   process.exit(1);
 }
 
@@ -32,10 +32,19 @@ async function run() {
     // 取得台灣時間資訊
     const now = new Date();
     const options = { timeZone: "Asia/Taipei" };
+    
+    // Explicit debug logging for server time
+    console.log(`🌍 Server UTC Time: ${now.toISOString()}`);
+    console.log(`🇹🇼 Target Timezone: Asia/Taipei`);
+
     const today = now.toLocaleDateString("zh-TW", { ...options, year: 'numeric', month: 'long', day: 'numeric' });
     const weekday = now.toLocaleDateString("zh-TW", { ...options, weekday: 'long' });
+    const timeStr = now.toLocaleTimeString("en-US", { ...options, hour: 'numeric', minute: 'numeric', hour12: false });
     const currentHour = parseInt(now.toLocaleTimeString("en-US", { ...options, hour: 'numeric', hour12: false }));
     
+    console.log(`📅 日期: ${today} (${weekday})`);
+    console.log(`🕒 時間: ${timeStr} (Hour: ${currentHour})`);
+
     // 判斷是早報還是晚報 (以中午 12 點為界線)
     const isMorningSession = currentHour < 12;
     
@@ -60,7 +69,7 @@ async function run() {
 
     if (isMorningSession) {
       // --- 早報設定 (08:00 AM) ---
-      console.log(`🌞 偵測為早報時段 (現在 ${currentHour} 點) - 鎖定美股與全球政策`);
+      console.log(`🌞 執行模式: 早報 (美股/全球)`);
       reportTitleType = "🇺🇸 全球財經早報";
       
       marketFocusInstruction = `
@@ -86,7 +95,7 @@ async function run() {
 
     } else {
       // --- 晚報設定 (17:00 PM) ---
-      console.log(`🌙 偵測為晚報時段 (現在 ${currentHour} 點) - 鎖定台股與亞洲科技`);
+      console.log(`🌙 執行模式: 晚報 (台股/亞洲)`);
       reportTitleType = "🇹🇼 台灣/亞洲科技晚報";
       
       marketFocusInstruction = `
@@ -221,7 +230,10 @@ async function sendToTelegram(text) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text })
   });
-  if (!response.ok) console.error(`Telegram Send Failed: ${response.statusText}`);
+  if (!response.ok) {
+      const err = await response.text();
+      console.error(`Telegram Send Failed: ${response.status} ${response.statusText}`, err);
+  }
 }
 
 run();

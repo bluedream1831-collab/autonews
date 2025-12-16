@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Bot, Sun, Moon, CalendarClock } from 'lucide-react';
+import { X, Bot, Sun, Moon, CalendarClock, AlertTriangle } from 'lucide-react';
 
 interface HelpGuideProps {
   isOpen: boolean;
@@ -91,7 +91,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
               <div className="bg-slate-800/50 p-4 rounded-xl border border-orange-500/20">
                     <div className="flex items-center gap-2 mb-2">
                       <Sun className="w-4 h-4 text-orange-500" />
-                      <span className="font-bold text-orange-200">08:00 AM 早報</span>
+                      <span className="font-bold text-orange-200">08:15 AM 早報</span>
                     </div>
                     <p className="text-slate-400">鎖定：美股收盤、聯準會政策、國際巨頭。</p>
               </div>
@@ -100,10 +100,31 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
               <div className="bg-slate-800/50 p-4 rounded-xl border border-blue-500/20">
                     <div className="flex items-center gap-2 mb-2">
                       <Moon className="w-4 h-4 text-blue-500" />
-                      <span className="font-bold text-blue-200">17:00 PM 晚報</span>
+                      <span className="font-bold text-blue-200">17:15 PM 晚報</span>
                     </div>
                     <p className="text-slate-400">鎖定：台股盤後、半導體供應鏈、亞洲市場。</p>
               </div>
+            </div>
+          </section>
+
+          {/* Troubleshooting Section */}
+          <section className="space-y-4 pt-6 border-t border-slate-800">
+             <h3 className="text-lg font-bold text-white flex items-center gap-2 text-red-400">
+              <AlertTriangle className="w-5 h-5" />
+              疑難排解：為什麼時間到了沒發文？
+            </h3>
+            <div className="bg-red-900/10 border border-red-500/20 rounded-lg p-4 space-y-3 text-sm text-slate-300">
+               <ul className="list-disc list-inside space-y-2">
+                  <li>
+                     <strong className="text-white">GitHub 塞車延遲</strong>：免費版 GitHub Actions 在整點 (例如 17:00) 經常塞車，可能延遲 30~60 分鐘才執行。我們已調整排程至 17:15 以避開尖峰。
+                  </li>
+                  <li>
+                     <strong className="text-white">Secrets 未設定</strong>：此網頁介面 (Vercel) 的設定僅供手動觸發使用。自動排程是在 GitHub 伺服器執行，必須在 <span className="font-mono bg-slate-800 px-1 rounded">GitHub Settings</span> 中設定 API Key。
+                  </li>
+                  <li>
+                     <strong className="text-white">專案超過 60 天未活動</strong>：若 GitHub 專案太久沒人 Commit，GitHub 會自動暫停 Cron Job。您需要手動去 GitHub Actions 頁面啟用。
+                  </li>
+               </ul>
             </div>
           </section>
 
