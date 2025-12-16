@@ -74,9 +74,11 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
   if (platform === Platform.InstantMessaging) {
     formatInstruction = `
       - Format: Optimized for Instant Messaging Apps (Telegram).
+      - **VISUAL STYLE**: STRICTLY USE EMOJIS for bullet points. Do NOT use standard dots (•) or dashes (-).
+      - Recommended Emojis: 🔹, 🔸, 🚀, 📉, 💡, ✅, 📌.
       - Structure:
         1. Start with a catchy header like 【📊 市場快訊】 or 【🚀 科技重點】.
-        2. Use bullet points (•) for readability on small screens.
+        2. Use Emojis (e.g., 🔹) for every list item to improve readability on small screens.
         3. **CRITICAL**: Include a dedicated "Deep Insight (深度觀點)" section. 
            - Do NOT limit this to one sentence. 
            - Provide a rich analysis (3-4 sentences) explaining the structural impact, money flow, or supply chain ripple effects.
@@ -87,6 +89,7 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
   } else {
     formatInstruction = `
       - Format: Optimized for ${platform}.
+      - **VISUAL STYLE**: Use Emojis (🔹, 🔸, 🚀) instead of standard bullet points to make the post engaging.
       - LinkedIn: Professional, structured (Hook -> Analysis -> Deep Insight -> Conclusion).
       - Twitter/X: Concise, punchy, thread-like.
       - Facebook: Engaging, expert tone.
@@ -110,6 +113,7 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
     YOUR WRITING STYLE:
     - Insightful: Do not just list facts. Explain the mechanism (e.g., "Yields up means tech valuation down because...").
     - Accessible: Use simple analogies for complex financial concepts.
+    - **Visuals**: You love using Emojis to organize points. You hate boring bullet points.
     
     YOUR TASK:
     1. Generate a high-quality post based on: "${topic}" using the "Google Search" tool for latest data.
@@ -289,7 +293,7 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
     GENERAL RULES:
     - Language: Traditional Chinese (Taiwan).
     - Tone: Professional, Concise, Insightful.
-    - Format: Use bullet points (•).
+    - **VISUAL FORMAT**: Use Emojis (e.g., 🔹, 🔸, 🚀, 📉, 💡) as bullet points. Do NOT use standard dots (•).
     - Length: Keep it under 600 words.
     - Data Accuracy: Use Google Search.
   `;
