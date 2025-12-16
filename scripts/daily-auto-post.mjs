@@ -45,24 +45,28 @@ async function run() {
     if (isMorningSession) {
       console.log(`🌞 偵測為早報時段 (現在 ${currentHour} 點) - 鎖定美股與全球政策`);
       reportTitleType = "🇺🇸 全球財經早報";
+      // 根據需求：美股為主 + 歐美政策 (美國優先)
       marketFocus = `
-        Focus Areas (MORNING EDITION):
-        1. US Stock Market Close (S&P 500, Nasdaq, Dow Jones) - Analyze the session that JUST closed.
-        2. US Economic Policies/Fed Announcements (Interest rates, CPI/PPI, Employment data).
-        3. Global Tech Giants (NVIDIA, Apple, Microsoft, Tesla) performance.
-        4. International geopolitical events affecting markets.
+        Focus Areas (MORNING EDITION - GLOBAL & US):
+        1. US Stock Market Analysis (S&P 500, Nasdaq, Dow Jones) - The session that JUST closed.
+        2. Key Economic Policies & Central Bank Actions:
+           - Priority: US Fed (Interest rates, Powell speeches, Inflation data).
+           - Secondary: European policies (ECB) or geopolitical shifts affecting global markets.
+        3. Global Tech Giants Watch (NVIDIA, Apple, Tesla, Microsoft).
         
-        Note: The "trading session" refers to the US market close which happened overnight relative to Taipei time.
+        Note: Focus on how "Western policies" and "US Market performance" set the tone for the day.
       `;
     } else {
       console.log(`🌙 偵測為晚報時段 (現在 ${currentHour} 點) - 鎖定台股與亞洲科技`);
       reportTitleType = "🇹🇼 台灣/亞洲科技晚報";
+      // 根據需求：亞洲股市(台灣為主) + 亞洲科技(台灣科技產業分析為主)
       marketFocus = `
-        Focus Areas (AFTERNOON EDITION):
-        1. Taiwan Stock Market (TWSE) Closing Analysis (Today's session).
-        2. Taiwan Tech Sector (TSMC, MediaTek, Foxconn, AI Supply Chain).
-        3. Asian Markets Overview (Nikkei 225, Hang Seng) if significant.
-        4. Key industry news released during Asian trading hours.
+        Focus Areas (AFTERNOON EDITION - ASIA & TAIWAN TECH):
+        1. Taiwan Stock Market (TWSE/TPEX) Closing Review.
+        2. DEEP DIVE: Taiwan Tech Industry Analysis (The "Asian Tech" Sector).
+           - Focus on: Semiconductors (TSMC ecosystem), AI Servers, IC Design.
+           - Look for: Supply chain news, monthly revenue reports, or tech breakthroughs.
+        3. Asian Market Context: Brief mention of Japan (Nikkei) or Korea if they impacted Taiwan's tech sector today.
       `;
     }
 
@@ -79,8 +83,8 @@ async function run() {
 
       CONSTRAINTS:
       - STRICTLY check the date. 
-      - If Morning: Report on the US close that happened a few hours ago.
-      - If Afternoon: Report on the Asian session that just finished today.
+      - If Morning: Report on the US close that happened a few hours ago (overnight Taipei time).
+      - If Afternoon: Report on the Asian/Taiwan session that just finished today.
       - Return ONLY the topic name as a plain string.
     `;
     
@@ -147,7 +151,7 @@ async function run() {
       contents: `
         Create a high-quality Midjourney prompt (in English) to visualize: "${topic}". 
         Style: ${randomStyle}.
-        Context: ${isMorningSession ? "US Market/Global Policy" : "Asian Tech/Semiconductors"}.
+        Context: ${isMorningSession ? "US Market & Western Policy" : "Taiwan Tech Industry & Semiconductors"}.
         Structure: Subject + Environment + Art Style + Lighting + --ar 16:9.
         Return ONLY the prompt string.
       `,
