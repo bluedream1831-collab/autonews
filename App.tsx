@@ -24,8 +24,6 @@ const App: React.FC = () => {
     geminiApiKey: '',
     telegramBotToken: '',
     telegramChatId: '',
-    lineChannelAccessToken: '', // Initialize Line fields
-    lineUserId: ''              // Initialize Line fields
   });
 
   // Load history from localStorage on mount

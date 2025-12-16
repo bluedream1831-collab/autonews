@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Key, MessageSquare, ShieldCheck, Eye, EyeOff, Zap, PlayCircle, Loader2, Smartphone } from 'lucide-react';
+import { X, Save, Key, MessageSquare, ShieldCheck, Eye, EyeOff, Zap, PlayCircle, Loader2 } from 'lucide-react';
 import { AppSettings } from '../types';
 import { runManualAutoPost } from '../services/geminiService';
 
@@ -14,7 +14,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
   const [formData, setFormData] = useState<AppSettings>(settings);
   const [showKey, setShowKey] = useState(false);
   const [showToken, setShowToken] = useState(false);
-  const [showLineToken, setShowLineToken] = useState(false);
 
   // Manual Trigger State
   const [isRunningAuto, setIsRunningAuto] = useState(false);
@@ -135,46 +134,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
                 onChange={(e) => setFormData({ ...formData, telegramChatId: e.target.value })}
                 placeholder="-100..."
                 className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-primary-500 outline-none"
-              />
-            </div>
-          </div>
-
-          <div className="border-t border-slate-800"></div>
-
-          {/* Line Settings */}
-          <div className="space-y-4">
-            <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-              <Smartphone className="w-4 h-4" /> Line 發送設定
-            </h3>
-            
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">Channel Access Token</label>
-              <div className="relative">
-                <input
-                  type={showLineToken ? "text" : "password"}
-                  value={formData.lineChannelAccessToken || ''}
-                  onChange={(e) => setFormData({ ...formData, lineChannelAccessToken: e.target.value })}
-                  placeholder="long-lived access token..."
-                  className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 pr-10 text-white focus:ring-2 focus:ring-green-500 outline-none"
-                />
-                 <button
-                  type="button"
-                  onClick={() => setShowLineToken(!showLineToken)}
-                  className="absolute right-3 top-3 text-slate-500 hover:text-slate-300"
-                >
-                  {showLineToken ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-slate-300">User ID / Group ID</label>
-              <input
-                type="text"
-                value={formData.lineUserId || ''}
-                onChange={(e) => setFormData({ ...formData, lineUserId: e.target.value })}
-                placeholder="Uxxxxxxxx..."
-                className="w-full bg-slate-950 border border-slate-700 rounded-lg p-3 text-white focus:ring-2 focus:ring-green-500 outline-none"
               />
             </div>
           </div>

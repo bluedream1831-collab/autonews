@@ -6,9 +6,6 @@ const API_KEY = process.env.API_KEY;
 // Telegram 設定
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-// Line 設定 (新增)
-const LINE_CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
-const LINE_USER_ID = process.env.LINE_USER_ID;
 
 // 定義與前端一致的風格列表
 const IMAGE_STYLES = [
@@ -174,7 +171,7 @@ async function run() {
 
     const postContent = contentResp.text;
     
-    // 步驟 C: 發送訊息 (Telegram + Line)
+    // 步驟 C: 發送訊息 (Telegram)
     console.log("📨 正在傳送訊息...");
     
     const promises = [];
@@ -184,13 +181,6 @@ async function run() {
       promises.push(sendToTelegram(postContent).then(() => console.log("✅ Telegram 發送成功")));
     } else {
       console.log("⚠️ 未設定 Telegram Token，跳過發送。");
-    }
-
-    // 2. Line
-    if (LINE_CHANNEL_ACCESS_TOKEN && LINE_USER_ID) {
-      promises.push(sendToLine(postContent).then(() => console.log("✅ Line 發送成功")));
-    } else {
-      console.log("⚠️ 未設定 Line Token，跳過發送。");
     }
 
     await Promise.all(promises);
@@ -213,7 +203,6 @@ async function run() {
     // 發送 Image Prompt
     const promptPromises = [];
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) promptPromises.push(sendToTelegram(imagePrompt));
-    if (LINE_CHANNEL_ACCESS_TOKEN && LINE_USER_ID) promptPromises.push(sendToLine(imagePrompt));
     await Promise.all(promptPromises);
 
     console.log("🎉 流程執行完畢！");
@@ -233,26 +222,6 @@ async function sendToTelegram(text) {
     body: JSON.stringify({ chat_id: TELEGRAM_CHAT_ID, text: text })
   });
   if (!response.ok) console.error(`Telegram Send Failed: ${response.statusText}`);
-}
-
-// Line 發送函數
-async function sendToLine(text) {
-  const url = `https://api.line.me/v2/bot/message/push`;
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${LINE_CHANNEL_ACCESS_TOKEN}`
-    },
-    body: JSON.stringify({
-      to: LINE_USER_ID,
-      messages: [{ type: 'text', text: text }]
-    })
-  });
-  if (!response.ok) {
-    const err = await response.text();
-    console.error(`Line Send Failed: ${err}`);
-  }
 }
 
 run();

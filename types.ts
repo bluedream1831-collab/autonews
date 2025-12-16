@@ -3,7 +3,7 @@ export enum Platform {
   LinkedIn = 'LinkedIn',
   Twitter = 'Twitter/X',
   Facebook = 'Facebook',
-  InstantMessaging = 'Line / Telegram (快訊)'
+  InstantMessaging = 'Telegram (快訊)'
 }
 
 export enum Tone {
@@ -53,6 +53,4 @@ export interface AppSettings {
   geminiApiKey: string;
   telegramBotToken: string;
   telegramChatId: string;
-  lineChannelAccessToken: string; // 新增
-  lineUserId: string;             // 新增
 }

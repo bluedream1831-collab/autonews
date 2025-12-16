@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Bot, Sun, Moon, CalendarClock, Smartphone } from 'lucide-react';
+import { X, Bot, Sun, Moon, CalendarClock } from 'lucide-react';
 
 interface HelpGuideProps {
   isOpen: boolean;
@@ -28,13 +28,6 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
 
         {/* Content */}
         <div className="p-6 space-y-8 text-slate-300">
-
-          <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-lg flex gap-3 text-sm text-blue-200">
-             <Smartphone className="w-5 h-5 flex-shrink-0 mt-0.5" />
-             <div>
-               此工具支援同時發送到 <strong>Telegram</strong> 與 <strong>Line</strong>。請依據您的需求設定對應的 Secrets。
-             </div>
-          </div>
           
           {/* Section: Telegram */}
           <div className="border-l-4 border-blue-500 pl-4 space-y-6">
@@ -61,22 +54,6 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
 
           <hr className="border-slate-800" />
 
-          {/* Section: Line (New) */}
-          <div className="border-l-4 border-green-500 pl-4 space-y-6">
-            <h3 className="text-xl font-bold text-white">💬 Line 設定 (選用)</h3>
-            
-            <section className="space-y-3 text-sm">
-              <p>若要啟用 Line 自動發文，請至 <a href="https://developers.line.biz/" target="_blank" className="text-green-400 underline">Line Developers Console</a>：</p>
-              <ol className="list-decimal list-inside space-y-2 text-slate-300 ml-1">
-                <li>建立一個 Provider 和 <strong>Messaging API</strong> Channel。</li>
-                <li>在 <strong>Messaging API</strong> 頁籤下方，產生 <strong className="text-white">Channel access token (long-lived)</strong>。</li>
-                <li>在 <strong>Basic settings</strong> 頁籤下方，找到 <strong className="text-white">Your User ID</strong> (個人測試用)；若要發到群組，需將 Line Bot 邀入群組並透過 Webhook 獲取 Group ID (較進階)。</li>
-              </ol>
-            </section>
-          </div>
-
-          <hr className="border-slate-800" />
-
           {/* Section: GitHub Secrets */}
           <section className="space-y-4">
             <h3 className="text-lg font-semibold text-white flex items-center gap-3">
@@ -98,15 +75,6 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
                 <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
                   <span className="text-blue-300">TELEGRAM_CHAT_ID</span>
                   <span className="text-slate-500">TG Channel ID</span>
-                </div>
-                {/* Line Secrets */}
-                <div className="flex justify-between bg-slate-800 p-2 rounded border border-green-900/30 border-dashed">
-                  <span className="text-green-400">LINE_CHANNEL_ACCESS_TOKEN</span>
-                  <span className="text-slate-500">選用：Line Token</span>
-                </div>
-                <div className="flex justify-between bg-slate-800 p-2 rounded border border-green-900/30 border-dashed">
-                  <span className="text-green-400">LINE_USER_ID</span>
-                  <span className="text-slate-500">選用：發送對象 ID</span>
                 </div>
               </div>
             </div>

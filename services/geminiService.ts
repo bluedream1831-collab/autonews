@@ -1,6 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { GenerateRequest, GeneratedResult, Platform, GroundingSource, AppSettings } from "../types";
-import { sendToTelegram, sendToLine } from "./telegramService";
+import { sendToTelegram } from "./telegramService";
 
 // Helper to lazily initialize the AI client
 const getAiClient = (apiKey?: string) => {
@@ -73,7 +73,7 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
   
   if (platform === Platform.InstantMessaging) {
     formatInstruction = `
-      - Format: Optimized for Instant Messaging Apps (Line/Telegram).
+      - Format: Optimized for Instant Messaging Apps (Telegram).
       - Structure:
         1. Start with a catchy header like 【📊 市場快訊】 or 【🚀 科技重點】.
         2. Use bullet points (•) for readability on small screens.
@@ -317,18 +317,6 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
     logCallback("⚠️ Telegram 未設定，跳過");
   }
 
-  if (settings.lineChannelAccessToken && settings.lineUserId) {
-    try {
-      await sendToLine(settings.lineChannelAccessToken, settings.lineUserId, postContent);
-      logCallback("✅ Line 主文發送成功");
-    } catch (e) {
-      errors.push(`Line Error: ${e instanceof Error ? e.message : 'Unknown'}`);
-      logCallback("❌ Line 發送失敗 (可能是 CORS 限制，請查看 Console)");
-    }
-  } else {
-    logCallback("⚠️ Line 未設定，跳過");
-  }
-
   // 6. Image Prompt
   logCallback("🎨 生成配圖指令中...");
   const imagePromptResp = await ai.models.generateContent({
@@ -344,9 +332,6 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
 
   if (settings.telegramBotToken && settings.telegramChatId) {
      await sendToTelegram(settings.telegramBotToken, settings.telegramChatId, imagePrompt).catch(() => {});
-  }
-  if (settings.lineChannelAccessToken && settings.lineUserId) {
-     await sendToLine(settings.lineChannelAccessToken, settings.lineUserId, imagePrompt).catch(() => {});
   }
   
   if (errors.length > 0) {
