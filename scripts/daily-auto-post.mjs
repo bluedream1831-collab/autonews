@@ -6,6 +6,8 @@ const API_KEY = process.env.API_KEY;
 // Telegram 設定
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+// 強制模式 (透過 GitHub Actions 輸入傳入): 'morning' | 'evening' | undefined
+const FORCE_MODE = process.env.FORCE_MODE ? process.env.FORCE_MODE.trim().toLowerCase() : null;
 
 // 定義與前端一致的風格列表
 const IMAGE_STYLES = [
@@ -25,10 +27,11 @@ if (!API_KEY) {
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
 /**
- * Helper function to retry operations on 503 (Overloaded) errors
- * Uses exponential backoff strategy
+ * 強化版重試機制 (Robust Retry)
+ * 針對 Google 503 Overloaded 錯誤進行高強度重試
+ * 最大重試: 10 次 (約可覆蓋 3-5 分鐘的當機時間)
  */
-const retryOperation = async (operation, retries = 5, delay = 2000) => {
+const retryOperation = async (operation, retries = 10, delay = 5000) => {
   try {
     return await operation();
   } catch (error) {
@@ -38,9 +41,14 @@ const retryOperation = async (operation, retries = 5, delay = 2000) => {
                          error.code === 503;
                          
     if (retries > 0 && isOverloaded) {
-      console.warn(`⚠️ API Overloaded (503). Retrying in ${delay}ms... (${retries} attempts left)`);
+      console.warn(`⚠️ API 塞車中 (503 Overloaded)。將在 ${delay/1000} 秒後重試... (剩餘嘗試: ${retries} 次)`);
+      
+      // 等待
       await new Promise(resolve => setTimeout(resolve, delay));
-      return retryOperation(operation, retries - 1, delay * 2); // Double the delay for next retry
+      
+      // 指數退避 (Exponential Backoff)，但設定上限為 60 秒
+      const nextDelay = Math.min(delay * 1.5, 60000); 
+      return retryOperation(operation, retries - 1, nextDelay);
     }
     throw error;
   }
@@ -55,21 +63,35 @@ async function run() {
     const now = new Date();
     const options = { timeZone: "Asia/Taipei" };
     
-    // Explicit debug logging for server time
     console.log(`🌍 Server UTC Time: ${now.toISOString()}`);
     console.log(`🇹🇼 Target Timezone: Asia/Taipei`);
 
     const today = now.toLocaleDateString("zh-TW", { ...options, year: 'numeric', month: 'long', day: 'numeric' });
     const weekday = now.toLocaleDateString("zh-TW", { ...options, weekday: 'long' });
     const timeStr = now.toLocaleTimeString("en-US", { ...options, hour: 'numeric', minute: 'numeric', hour12: false });
-    const currentHour = parseInt(now.toLocaleTimeString("en-US", { ...options, hour: 'numeric', hour12: false }));
+    
+    // 使用 Intl.DateTimeFormat 確保獲取正確的當地小時數 (0-23)
+    const hourFormatter = new Intl.DateTimeFormat('en-US', { ...options, hour: 'numeric', hour12: false });
+    const currentHour = parseInt(hourFormatter.format(now));
     
     console.log(`📅 日期: ${today} (${weekday})`);
-    console.log(`🕒 時間: ${timeStr} (Hour: ${currentHour})`);
+    console.log(`🕒 台灣時間: ${currentHour} 點 (${timeStr})`);
 
-    // 判斷是早報還是晚報 (以中午 12 點為界線)
-    const isMorningSession = currentHour < 12;
-    
+    // ==========================================
+    // 判斷早報/晚報 (支援強制模式)
+    // ==========================================
+    let isMorningSession = currentHour < 12;
+
+    if (FORCE_MODE === 'morning') {
+      console.log("⚡ [強制模式] 啟動：強制執行「早報」流程");
+      isMorningSession = true;
+    } else if (FORCE_MODE === 'evening') {
+      console.log("⚡ [強制模式] 啟動：強制執行「晚報」流程");
+      isMorningSession = false;
+    } else {
+      console.log(`🤖 [自動偵測]：當前為 ${isMorningSession ? '上午' : '下午'}，執行「${isMorningSession ? '早報' : '晚報'}」流程`);
+    }
+
     // ==========================================
     // 定義早報與晚報的詳細腳本 (Script Structure)
     // ==========================================
@@ -78,10 +100,9 @@ async function run() {
     let marketFocusInstruction = "";
     let contentGenerationInstruction = "";
 
-    // 定義 Insight (觀點) 的高標準要求 - 已移除一句話限制，改為豐富分析
     const insightInstruction = `
       關於「深度觀點 (Deep Insight)」的寫作要求：
-      - **核心目標**：提供一段豐富且具邏輯的分析 (約 80-120 字)。不要只寫新聞摘要。
+      - **核心目標**：提供一段豐富且具邏輯的分析 (約 100-150 字)。不要只寫新聞摘要。
       - **分析維度 (請涵蓋以下 2-3 點)**：
         1. **資金流向**：這筆錢從哪裡流出？流向哪裡？(例如：避險資金流向比特幣、或從傳產流向 AI)。
         2. **產業鏈連動**：這則新聞對上游/下游有什麼連鎖反應？(例如：輝達晶片賣得好 -> 台積電 CoWoS 產能吃緊 -> 測試介面廠受惠)。
@@ -90,8 +111,8 @@ async function run() {
     `;
 
     if (isMorningSession) {
-      // --- 早報設定 (08:00 AM) ---
-      console.log(`🌞 執行模式: 早報 (美股/全球)`);
+      // --- 早報設定 ---
+      console.log(`🌞 執行目標: 🇺🇸 全球財經早報`);
       reportTitleType = "🇺🇸 全球財經早報";
       
       marketFocusInstruction = `
@@ -116,8 +137,8 @@ async function run() {
       `;
 
     } else {
-      // --- 晚報設定 (17:00 PM) ---
-      console.log(`🌙 執行模式: 晚報 (台股/亞洲)`);
+      // --- 晚報設定 ---
+      console.log(`🌙 執行目標: 🇹🇼 台灣/亞洲科技晚報`);
       reportTitleType = "🇹🇼 台灣/亞洲科技晚報";
       
       marketFocusInstruction = `
@@ -149,7 +170,7 @@ async function run() {
     const randomStyle = IMAGE_STYLES[Math.floor(Math.random() * IMAGE_STYLES.length)];
 
     // 步驟 A: 找出時段熱點 (Trend Identification)
-    console.log("🔍 正在搜尋市場熱點...");
+    console.log("🔍 [Step 1] 正在搜尋市場熱點...");
     const trendPrompt = `
       Current Date: ${today} (${weekday}).
       
@@ -161,7 +182,7 @@ async function run() {
       - Return ONLY the topic name as a concise string (e.g., "NVIDIA財報創高", "台積電法說會", "聯準會降息一碼").
     `;
     
-    // 使用 retryOperation 包裹 API 呼叫
+    // 使用強化版 retryOperation
     const trendResp = await retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: trendPrompt,
@@ -178,7 +199,7 @@ async function run() {
     console.log(`✅ 鎖定主題: ${topic}`);
 
     // 步驟 B: 生成貼文 (Content Generation)
-    console.log("✍️ 正在撰寫分析貼文...");
+    console.log("✍️ [Step 2] 正在撰寫分析貼文...");
     const contentPrompt = `
       Current Date: ${today} (${weekday}).
       Topic: "${topic}"
@@ -195,7 +216,7 @@ async function run() {
       - Data Accuracy: Use Google Search to ensure prices and percentages are from TODAY's session.
     `;
 
-    // 使用 retryOperation 包裹 API 呼叫
+    // 使用強化版 retryOperation
     const contentResp = await retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: contentPrompt,
@@ -205,13 +226,12 @@ async function run() {
     const postContent = contentResp.text;
     
     // 步驟 C: 發送訊息 (Telegram)
-    console.log("📨 正在傳送訊息...");
+    console.log("📨 [Step 3] 正在傳送 Telegram 訊息...");
     
     const promises = [];
 
-    // 1. Telegram
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) {
-      promises.push(sendToTelegram(postContent).then(() => console.log("✅ Telegram 發送成功")));
+      promises.push(sendToTelegram(postContent).then(() => console.log("✅ Telegram 主文發送成功")));
     } else {
       console.log("⚠️ 未設定 Telegram Token，跳過發送。");
     }
@@ -219,8 +239,7 @@ async function run() {
     await Promise.all(promises);
     
     // 步驟 D: 生成 Image Prompt 並發送
-    console.log("🎨 正在生成 AI 繪圖指令...");
-    // 使用 retryOperation 包裹 API 呼叫
+    console.log("🎨 [Step 4] 正在生成 AI 繪圖指令...");
     const imagePromptResp = await retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `
@@ -234,7 +253,6 @@ async function run() {
     
     const imagePrompt = `🎨 建議配圖指令 (${randomStyle}):\n\n\`${imagePromptResp.text.trim()}\``;
     
-    // 發送 Image Prompt
     const promptPromises = [];
     if (TELEGRAM_BOT_TOKEN && TELEGRAM_CHAT_ID) promptPromises.push(sendToTelegram(imagePrompt));
     await Promise.all(promptPromises);

@@ -18,8 +18,8 @@ const getAiClient = (apiKey?: string) => {
  */
 const retryOperation = async <T>(
   operation: () => Promise<T>, 
-  retries = 3, 
-  delay = 1000
+  retries = 5, 
+  delay = 2000
 ): Promise<T> => {
   try {
     return await operation();
