@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Platform, Tone, ImageStyle, GenerateRequest, AIModel } from '../types';
 import { getTrendingTopics } from '../services/geminiService';
-import { Send, TrendingUp, Loader2, Tag, Flame, RefreshCw, Palette, BrainCircuit, Zap, Timer, Sparkles } from 'lucide-react';
+import { Send, TrendingUp, Loader2, Tag, Flame, RefreshCw, BrainCircuit, Zap, Timer, Sparkles } from 'lucide-react';
 
 interface InputFormProps {
   onGenerate: (req: GenerateRequest) => void;
@@ -44,6 +44,24 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading, currentMod
     return () => clearInterval(interval);
   }, [isLoading]);
 
+  const handleFetchTrending = async () => {
+    setIsTrendingLoading(true);
+    try {
+      let apiKey = '';
+      const savedSettings = localStorage.getItem('app_settings');
+      if (savedSettings) {
+        apiKey = JSON.parse(savedSettings).geminiApiKey;
+      }
+      const topics = await getTrendingTopics(apiKey);
+      setTrendingTopics(topics);
+      setHasFetchedTrending(true);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setIsTrendingLoading(false);
+    }
+  };
+
   const triggerGenerate = () => {
     if (!topic.trim()) return;
     onGenerate({ topic, platform, tone, imageStyle });
@@ -58,7 +76,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading, currentMod
 
   return (
     <div className="space-y-4">
-      {/* 快速切換 AI 引擎 (頂部顯眼處) */}
+      {/* 快速切換 AI 引擎 */}
       <div className="bg-slate-900/60 p-1.5 rounded-2xl border border-slate-800 flex gap-1.5 shadow-2xl">
         {modelOptions.map((m) => {
           const Icon = m.icon;
@@ -100,17 +118,54 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading, currentMod
               required
             />
             
-            <div className="mt-4 flex flex-wrap gap-2">
-              {QUICK_TAGS.map(tag => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => setTopic(tag)}
-                  className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors"
-                >
-                  {tag}
-                </button>
-              ))}
+            <div className="mt-4 space-y-3">
+              {/* 熱搜話題區域 */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-[10px] font-bold text-orange-400 uppercase tracking-wider">
+                    <Flame className="w-3 h-3" />
+                    今日市場熱搜
+                  </div>
+                  <button 
+                    type="button"
+                    onClick={handleFetchTrending}
+                    disabled={isTrendingLoading}
+                    className="text-[10px] text-slate-500 hover:text-slate-300 flex items-center gap-1"
+                  >
+                    <RefreshCw className={`w-3 h-3 ${isTrendingLoading ? 'animate-spin' : ''}`} />
+                    {hasFetchedTrending ? '刷新' : '獲取建議'}
+                  </button>
+                </div>
+                {hasFetchedTrending && (
+                  <div className="flex flex-wrap gap-2">
+                    {trendingTopics.map(tag => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => setTopic(tag)}
+                        className="px-2 py-1 bg-orange-500/10 hover:bg-orange-500/20 border border-orange-500/20 rounded-md text-[10px] text-orange-300 transition-colors"
+                      >
+                        {tag}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* 常用標籤 */}
+              <div className="flex flex-wrap gap-2">
+                {QUICK_TAGS.map(tag => (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => setTopic(tag)}
+                    className="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-full text-xs text-slate-300 transition-colors flex items-center gap-1"
+                  >
+                    <Tag className="w-3 h-3 text-primary-500" />
+                    {tag}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

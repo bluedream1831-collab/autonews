@@ -1,6 +1,6 @@
 
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import { GenerateRequest, GeneratedResult, Platform, GroundingSource, AppSettings, AIModel } from "../types";
+import { GenerateRequest, GeneratedResult, GroundingSource, AppSettings, AIModel } from "../types";
 import { sendToTelegram } from "./telegramService";
 
 const getAiClient = (apiKey?: string) => {
