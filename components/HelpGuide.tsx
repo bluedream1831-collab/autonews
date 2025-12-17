@@ -92,42 +92,44 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
             </div>
 
             <div className="grid grid-cols-1 gap-3">
-              {modelComparison.map((m) => (
-                <div key={m.name} className={`${m.bg} ${m.border} border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 group hover:bg-opacity-20 transition-all`}>
-                  <div className={`${m.bg} p-3 rounded-lg shrink-0`}>
-                    <m.icon className={`w-6 h-6 ${m.color}`} />
-                  </div>
-                  <div className="flex-grow">
-                    <div className="flex items-center justify-between mb-1">
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-white">{m.name}</h4>
-                        {m.name.includes("Pro") && <span className="text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded uppercase">Strongest Search</span>}
+              {modelComparison.map((m) => {
+                const ModelIcon = m.icon;
+                return (
+                  <div key={m.name} className={`${m.bg} ${m.border} border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 group hover:bg-opacity-20 transition-all`}>
+                    <div className={`${m.bg} p-3 rounded-lg shrink-0`}>
+                      <ModelIcon className={`w-6 h-6 ${m.color}`} />
+                    </div>
+                    <div className="flex-grow">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-bold text-white">{m.name}</h4>
+                          {m.name.includes("Pro") && <span className="text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded uppercase">Strongest Search</span>}
+                        </div>
+                        <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                          {m.speed}
+                        </span>
                       </div>
-                      <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">
-                        {m.speed}
-                      </span>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
-                      <p className="text-xs text-slate-400 flex items-center gap-1">
-                        <CheckCircle2 className="w-3 h-3 text-slate-600" /> 
-                        優勢: <span className="text-slate-300">{m.strength}</span>
-                      </p>
-                      <p className="text-xs text-slate-400 flex items-center gap-1">
-                        <BrainCircuit className="w-3 h-3 text-slate-600" /> 
-                        推理: <span className="text-slate-300">{m.thinking}</span>
-                      </p>
-                    </div>
-                    <div className="mt-2 text-[11px] text-blue-400/80 italic flex items-center gap-1">
-                      <ChevronRight className="w-3 h-3" />
-                      建議用途：{m.bestFor}
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                          <CheckCircle2 className="w-3 h-3 text-slate-600" /> 
+                          優勢: <span className="text-slate-300">{m.strength}</span>
+                        </p>
+                        <p className="text-xs text-slate-400 flex items-center gap-1">
+                          <BrainCircuit className="w-3 h-3 text-slate-600" /> 
+                          推理: <span className="text-slate-300">{m.thinking}</span>
+                        </p>
+                      </div>
+                      <div className="mt-2 text-[11px] text-blue-400/80 italic flex items-center gap-1">
+                        <ChevronRight className="w-3 h-3" />
+                        建議用途：{m.bestFor}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </section>
 
-          {/* Rest of the guide remains same... */}
           <section className="space-y-4 pt-6 border-t border-slate-800">
             <h3 className="text-lg font-semibold text-white flex items-center gap-2">
               <Github className="w-6 h-6" /> 🛠️ GitHub 自動化設定 (Secrets)

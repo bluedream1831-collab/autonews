@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import InputForm from './components/InputForm';
 import ResultDisplay from './components/ResultDisplay';
@@ -6,7 +7,7 @@ import HelpGuide from './components/HelpGuide';
 import SettingsModal from './components/SettingsModal';
 import { GenerateRequest, GeneratedResult, HistoryItem, AppSettings, AIModel } from './types';
 import { generatePost } from './services/geminiService';
-import { Activity, Cpu, Globe, BarChart3, History, HelpCircle, Settings as SettingsIcon } from 'lucide-react';
+import { Activity, BarChart3, History, HelpCircle, Settings as SettingsIcon } from 'lucide-react';
 
 const App: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -54,6 +55,12 @@ const App: React.FC = () => {
   }, [history]);
 
   const handleSaveSettings = (newSettings: AppSettings) => {
+    setSettings(newSettings);
+    localStorage.setItem('app_settings', JSON.stringify(newSettings));
+  };
+
+  const handleModelChange = (model: AIModel) => {
+    const newSettings = { ...settings, preferredModel: model };
     setSettings(newSettings);
     localStorage.setItem('app_settings', JSON.stringify(newSettings));
   };
@@ -191,6 +198,7 @@ const App: React.FC = () => {
               onGenerate={handleGenerate} 
               isLoading={loading}
               currentModel={settings.preferredModel}
+              onModelChange={handleModelChange}
             />
           </div>
 

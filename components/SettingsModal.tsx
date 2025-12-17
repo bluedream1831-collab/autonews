@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { X, Save, Key, MessageSquare, ShieldCheck, Eye, EyeOff, Zap, PlayCircle, Loader2, BrainCircuit, Timer, Sparkles } from 'lucide-react';
 import { AppSettings, AIModel } from '../types';
@@ -57,10 +58,10 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
   };
 
   const models = [
-    { id: AIModel.Pro, label: '3 Pro', icon: BrainCircuit, color: 'purple', desc: '🧠 深度推理，最強分析能力。' },
-    { id: AIModel.Flash3, label: '3 Flash', icon: Zap, color: 'blue', desc: '⚡ 現代標準，速度與品質平衡。' },
-    { id: AIModel.Flash25, label: '2.5 Flash', icon: Sparkles, color: 'indigo', desc: '💎 支援思考，穩定性極佳。' },
-    { id: AIModel.Flash2, label: '2.0 Flash', icon: Timer, color: 'emerald', desc: '🍃 極速效能，最低延遲首選。' },
+    { id: AIModel.Pro, label: '3 Pro', icon: BrainCircuit, color: 'purple', desc: '🧠 深度推理，最強分析能力。', activeClass: 'border-purple-500 bg-purple-500/10 ring-purple-500/30', textColor: 'text-purple-400', iconColor: 'text-purple-500' },
+    { id: AIModel.Flash3, label: '3 Flash', icon: Zap, color: 'blue', desc: '⚡ 現代標準，速度與品質平衡。', activeClass: 'border-blue-500 bg-blue-500/10 ring-blue-500/30', textColor: 'text-blue-400', iconColor: 'text-blue-500' },
+    { id: AIModel.Flash25, label: '2.5 Flash', icon: Sparkles, color: 'indigo', desc: '💎 支援思考，穩定性極佳。', activeClass: 'border-indigo-500 bg-indigo-500/10 ring-indigo-500/30', textColor: 'text-indigo-400', iconColor: 'text-indigo-500' },
+    { id: AIModel.Flash2, label: '2.0 Flash', icon: Timer, color: 'emerald', desc: '🍃 極速效能，最低延遲首選。', activeClass: 'border-emerald-500 bg-emerald-500/10 ring-emerald-500/30', textColor: 'text-emerald-400', iconColor: 'text-emerald-500' },
   ];
 
   return (
@@ -84,26 +85,30 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, settings
               AI 核心引擎選擇
             </label>
             <div className="grid grid-cols-2 gap-3">
-              {models.map((m) => (
-                <button
-                  key={m.id}
-                  type="button"
-                  onClick={() => setFormData({ ...formData, preferredModel: m.id })}
-                  className={`p-3 rounded-xl border transition-all text-left group ${
-                    formData.preferredModel === m.id 
-                    ? `border-${m.color}-500 bg-${m.color}-500/10 ring-1 ring-${m.color}-500/30` 
-                    : 'border-slate-800 bg-slate-950 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className={`text-[11px] font-bold ${formData.preferredModel === m.id ? `text-${m.color}-400` : 'text-slate-400'}`}>
-                      {m.label}
-                    </span>
-                    <m.icon className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${formData.preferredModel === m.id ? `text-${m.color}-500` : 'text-slate-600'}`} />
-                  </div>
-                  <p className="text-[10px] text-slate-500 leading-tight">{m.desc}</p>
-                </button>
-              ))}
+              {models.map((m) => {
+                const ModelIcon = m.icon;
+                const isActive = formData.preferredModel === m.id;
+                return (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => setFormData({ ...formData, preferredModel: m.id })}
+                    className={`p-3 rounded-xl border transition-all text-left group ${
+                      isActive 
+                      ? `${m.activeClass} ring-1` 
+                      : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`text-[11px] font-bold ${isActive ? m.textColor : 'text-slate-400'}`}>
+                        {m.label}
+                      </span>
+                      <ModelIcon className={`w-3.5 h-3.5 transition-transform group-hover:scale-110 ${isActive ? m.iconColor : 'text-slate-600'}`} />
+                    </div>
+                    <p className="text-[10px] text-slate-500 leading-tight">{m.desc}</p>
+                  </button>
+                );
+              })}
             </div>
             <p className="text-[10px] text-slate-500 italic px-1">
                * 註：2.5 及 3 系列支援 Thinking 深度思考模式，雖然生成較慢但邏輯更嚴謹。
