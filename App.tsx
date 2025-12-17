@@ -133,8 +133,8 @@ const App: React.FC = () => {
               <Activity className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-xl font-bold text-white tracking-tight">FinTech Insight Gen</h1>
-              <p className="text-xs text-slate-400">美台股與科技時事生成器</p>
+              <h1 className="text-xl font-bold text-white tracking-tight">Global FinTech Insight</h1>
+              <p className="text-xs text-slate-400">美台股/全球科技時事生成器</p>
             </div>
           </div>
           

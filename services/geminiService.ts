@@ -50,14 +50,15 @@ export const getTrendingTopics = async (apiKey?: string): Promise<string[]> => {
     Identify 6 current trending specific keywords, stock tickers, or short news headlines for today (${today}).
     
     Focus Areas:
-    1. Global Technology sector (AI, Semi, SaaS).
-    2. Stock Markets: Mainly US & Taiwan, but also include major events in Japan, Europe, or Crypto if significant.
+    1. Global Technology sector (AI, Semi, SaaS, EV).
+    2. Stock Markets: Primary focus on US & Taiwan.
+       - CRITICAL: Also include significant movers from Japan, Europe (e.g. ASML, SAP), or China if they impact the global tech supply chain.
     
     Use the "Google Search" tool to ensure the data is absolutely real-time.
     
     Requirements:
     - Return ONLY the topics separated by a semicolon ';'.
-    - Example Output: NVIDIA Blackwell;台積電法說;比特幣價格;日經指數新高;OpenAI Sora;聯準會降息
+    - Example Output: NVIDIA Blackwell;台積電法說;比特幣價格;日經指數新高;ASML財報;聯準會降息
     - Do not add any introductory text, numbering, or bullet points.
     - Keep each topic concise (under 15 characters if possible).
   `;
@@ -147,10 +148,11 @@ export const generatePost = async (request: GenerateRequest, apiKey?: string): P
     
     YOUR EXPERTISE:
     1. Technology Sector (AI, Semiconductors, SaaS, Hardware).
-    2. Global Financial Markets (US, Taiwan, Japan, Europe, Crypto).
+    2. Global Financial Markets (US, Taiwan, Japan, Europe, China, Crypto).
     
     YOUR WRITING STYLE:
     - Insightful: Do not just list facts. Explain the mechanism (e.g., "Yields up means tech valuation down because...").
+    - **Global Perspective**: While focusing on US/Taiwan, explicitly link events to other regions if relevant (e.g., "ASML's drop in Netherlands dragged down US chip equipment stocks").
     - Accessible: Use simple analogies for complex financial concepts.
     - **Visuals**: You love using Emojis to organize points. You hate boring bullet points.
     
@@ -272,9 +274,10 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
      marketFocusInstruction = `
       🎯 搜尋重點 (早報 - 美股/全球):
       1. **美股收盤數據**: 昨天晚上的美股三大指數 (S&P 500, Nasdaq, Dow) 收盤表現。
-      2. **全球/美國政策**: 聯準會 (Fed) 官員談話、利率決策、美國非農/CPI 數據、或拜登政府針對科技/晶片的最新禁令或補貼。
-      3. **國際科技巨頭**: NVIDIA, Apple, Microsoft, Tesla, AMD 在美股盤中的表現與新聞。
-      注意：現在是台灣早上，你要報導的是「剛結束的美國交易時段」。
+      2. **全球/美國政策**: 聯準會 (Fed) 官員談話、美國經濟數據(CPI/NFP)。
+      3. **國際市場**: 歐洲主要指數 (DAX, FTSE) 若有重大波動需提及。
+      4. **國際科技巨頭**: NVIDIA, Apple, Microsoft, Tesla, AMD, ASML, TSMC ADR。
+      注意：現在是台灣早上，你要報導的是「剛結束的美國交易時段」以及「歐洲收盤狀況」。
     `;
     contentGenerationInstruction = `
       你是一位華爾街資深分析師。請針對「美股收盤」與「全球政策」撰寫早報。
@@ -294,8 +297,10 @@ export const runManualAutoPost = async (settings: AppSettings, logCallback: (msg
       2. **台灣科技產業 (柯基分析)**: 
          - 重點鎖定：半導體供應鏈 (台積電、CoWoS、先進封裝)。
          - AI 伺服器供應鏈 (廣達、緯創、鴻海)。
-         - IC 設計 (聯發科、瑞昱)。
-      3. **亞洲市場連動**: 若日經 (Nikkei) 或韓股 (Kospi) 有大漲跌，請一併提及。
+      3. **亞洲市場連動**: 
+         - 日本 (Nikkei): 半導體設備股 (Tokyo Electron)。
+         - 韓國 (Kospi): 記憶體 (Samsung, SK Hynix)。
+         - 中國/香港: 若有重大科技監管或經濟刺激政策。
       注意：現在是台灣下午，你要報導的是「剛結束的亞洲/台灣交易時段」。
     `;
     contentGenerationInstruction = `

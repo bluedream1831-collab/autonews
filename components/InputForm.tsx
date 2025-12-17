@@ -14,7 +14,7 @@ const QUICK_TAGS = [
   "聯準會 (Fed)", 
   "比特幣 (BTC)",
   "日經指數 (Nikkei)",
-  "黃金 (Gold)",
+  "ASML (ASML)",
   "特斯拉 (TSLA)",
   "美股大盤"
 ];
