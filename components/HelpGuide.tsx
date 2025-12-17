@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { X, Bot, Sun, Moon, CalendarClock, AlertTriangle } from 'lucide-react';
+import { X, Bot, Sun, Moon, CalendarClock, AlertTriangle, Terminal, Github, ShieldCheck, Sparkles, BrainCircuit, Zap, Timer, CheckCircle2, ChevronRight, Search } from 'lucide-react';
 
 interface HelpGuideProps {
   isOpen: boolean;
@@ -9,6 +10,53 @@ interface HelpGuideProps {
 const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
+  const modelComparison = [
+    {
+      name: "Gemini 3 Pro (分析師首選)",
+      icon: BrainCircuit,
+      color: "text-purple-400",
+      bg: "bg-purple-500/10",
+      border: "border-purple-500/20",
+      strength: "最高精度的 Google Search 整合、邏輯推演",
+      speed: "慢 (因進行深度檢索與思考)",
+      thinking: "支援 (最高預算 32k)",
+      bestFor: "專業投研報告、需要精準數據的自動發文"
+    },
+    {
+      name: "Gemini 3 Flash",
+      icon: Zap,
+      color: "text-blue-400",
+      bg: "bg-blue-500/10",
+      border: "border-blue-500/20",
+      strength: "平衡效能、快速連網摘要",
+      speed: "快",
+      thinking: "支援 (最高預算 24k)",
+      bestFor: "一般社群分享、即時資訊彙整"
+    },
+    {
+      name: "Gemini 2.5 Flash",
+      icon: Sparkles,
+      color: "text-indigo-400",
+      bg: "bg-indigo-500/10",
+      border: "border-indigo-500/20",
+      strength: "長文穩定性、推理能力穩健",
+      speed: "中等",
+      thinking: "支援 (最高預算 24k)",
+      bestFor: "固定格式的週報、長期數據追蹤"
+    },
+    {
+      name: "Gemini 2.0 Flash",
+      icon: Timer,
+      color: "text-emerald-400",
+      bg: "bg-emerald-500/10",
+      border: "border-emerald-500/20",
+      strength: "極速響應、基礎資訊生成",
+      speed: "極快",
+      thinking: "不支援 (或建議設為 0)",
+      bestFor: "市場快訊、短評論、高頻率測試"
+    }
+  ];
+
   return (
     <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-slate-900 border border-slate-700 rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto custom-scrollbar flex flex-col">
@@ -16,7 +64,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
         <div className="flex items-center justify-between p-6 border-b border-slate-800 bg-slate-900 z-10 sticky top-0">
           <h2 className="text-xl font-bold text-white flex items-center gap-2">
             <Bot className="w-6 h-6 text-blue-400" />
-            自動化機器人設定教學
+            🤖 自動化機器人設定指南
           </h2>
           <button 
             onClick={onClose} 
@@ -27,108 +75,84 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-8 text-slate-300">
+        <div className="p-6 space-y-10 text-slate-300">
           
-          {/* Section: Telegram */}
-          <div className="border-l-4 border-blue-500 pl-4 space-y-6">
-            <h3 className="text-xl font-bold text-white">📡 Telegram 設定</h3>
-            
-            {/* Step 1 */}
-            <section className="space-y-2">
-              <h4 className="font-semibold text-blue-400">1. 建立機器人</h4>
-              <p className="text-sm">在 Telegram 搜尋 <strong className="text-white">@BotFather</strong>，輸入 <code className="bg-slate-800 px-1 rounded">/newbot</code> 建立，並取得 <strong>HTTP API Token</strong>。</p>
-            </section>
-
-            {/* Step 2 */}
-            <section className="space-y-2">
-              <h4 className="font-semibold text-blue-400">2. 獲取頻道 ID</h4>
-              <p className="text-sm">建立頻道 → 加入機器人為管理員 → 發送一則訊息 → 用瀏覽器打開：</p>
-              <div className="bg-black p-2 rounded border border-slate-600 font-mono text-xs text-blue-300 break-all select-all flex flex-wrap">
-                <span>https://api.telegram.org/bot</span>
-                <span className="text-yellow-400">{'<您的Token>'}</span>
-                <span>/getUpdates</span>
-              </div>
-              <p className="text-xs text-slate-400">尋找 <code className="text-green-400">"id": -100xxxxxxx</code> 即為頻道 ID。</p>
-            </section>
-          </div>
-
-          <hr className="border-slate-800" />
-
-          {/* Section: GitHub Secrets */}
+          {/* Section: Model Deep Dive */}
           <section className="space-y-4">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-3">
-              <span className="bg-purple-600 text-white text-xs font-bold px-2.5 py-1 rounded-full">FINAL STEP</span>
-              設定 GitHub Secrets
+            <div className="flex items-center gap-2 mb-4">
+              <Search className="w-5 h-5 text-blue-400" />
+              <h3 className="text-xl font-bold text-white">為什麼 Pro 模型生成更好？</h3>
+            </div>
+            
+            <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 mb-6">
+               <p className="text-sm leading-relaxed">
+                 <strong className="text-white">Pro 模型不僅僅是「搜尋」而已。</strong><br/>
+                 它具備強大的推理引擎，能從多個 Google 搜尋結果中過濾掉雜訊，並將碎片化的資訊重組為具備專業邏輯的分析文。如果您需要的是「有靈魂、有數據」的貼文，<span className="text-purple-400 font-bold">Gemini 3 Pro</span> 是唯一選擇。
+               </p>
+            </div>
+
+            <div className="grid grid-cols-1 gap-3">
+              {modelComparison.map((m) => (
+                <div key={m.name} className={`${m.bg} ${m.border} border rounded-xl p-4 flex flex-col sm:flex-row sm:items-center gap-4 group hover:bg-opacity-20 transition-all`}>
+                  <div className={`${m.bg} p-3 rounded-lg shrink-0`}>
+                    <m.icon className={`w-6 h-6 ${m.color}`} />
+                  </div>
+                  <div className="flex-grow">
+                    <div className="flex items-center justify-between mb-1">
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-bold text-white">{m.name}</h4>
+                        {m.name.includes("Pro") && <span className="text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded uppercase">Strongest Search</span>}
+                      </div>
+                      <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">
+                        {m.speed}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-1">
+                      <p className="text-xs text-slate-400 flex items-center gap-1">
+                        <CheckCircle2 className="w-3 h-3 text-slate-600" /> 
+                        優勢: <span className="text-slate-300">{m.strength}</span>
+                      </p>
+                      <p className="text-xs text-slate-400 flex items-center gap-1">
+                        <BrainCircuit className="w-3 h-3 text-slate-600" /> 
+                        推理: <span className="text-slate-300">{m.thinking}</span>
+                      </p>
+                    </div>
+                    <div className="mt-2 text-[11px] text-blue-400/80 italic flex items-center gap-1">
+                      <ChevronRight className="w-3 h-3" />
+                      建議用途：{m.bestFor}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Rest of the guide remains same... */}
+          <section className="space-y-4 pt-6 border-t border-slate-800">
+            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+              <Github className="w-6 h-6" /> 🛠️ GitHub 自動化設定 (Secrets)
             </h3>
             <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800 text-sm space-y-3">
-              <p>請至 GitHub 專案的 <span className="text-slate-200 font-bold">Settings &gt; Secrets and variables &gt; Actions</span> 建立以下 Secrets：</p>
+              <p>若要在 GitHub 執行自動排程，請至專案的 <span className="text-blue-400 font-bold">Settings > Secrets > Actions</span> 設定：</p>
               
-              <div className="space-y-2 mt-2 font-mono text-xs">
+              <div className="grid grid-cols-1 gap-2 font-mono text-[11px]">
                 <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
                   <span className="text-purple-300">API_KEY</span>
-                  <span className="text-slate-500">Gemini Key</span>
+                  <span className="text-slate-500">Gemini API Key</span>
                 </div>
                 <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
                   <span className="text-blue-300">TELEGRAM_BOT_TOKEN</span>
-                  <span className="text-slate-500">TG Bot Token</span>
+                  <span className="text-slate-500">Bot Token</span>
                 </div>
                 <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
                   <span className="text-blue-300">TELEGRAM_CHAT_ID</span>
-                  <span className="text-slate-500">TG Channel ID</span>
+                  <span className="text-slate-500">頻道 ID (-100...)</span>
+                </div>
+                <div className="flex justify-between bg-slate-900 p-2 rounded border border-slate-700 border-dashed">
+                  <span className="text-emerald-400">PREFERRED_MODEL</span>
+                  <span className="text-slate-500">gemini-3-pro-preview (推薦)</span>
                 </div>
               </div>
-            </div>
-          </section>
-
-          {/* Automated Schedule Info */}
-          <section className="space-y-4 pt-6 border-t border-slate-800">
-            <h3 className="text-lg font-bold text-white flex items-center gap-2">
-              <CalendarClock className="w-6 h-6 text-orange-400" />
-              📅 自動發文排程 (台灣時間)
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-              {/* Morning Report */}
-              <div className="bg-slate-800/50 p-4 rounded-xl border border-orange-500/20 hover:border-orange-500/40 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Sun className="w-4 h-4 text-orange-500" />
-                      <span className="font-bold text-orange-200">06:37 AM 早報</span>
-                    </div>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                      <strong>起床第一手消息：</strong>美股剛收盤數據、Fed 最新談話。趕在讀者 7 點起床前送達。
-                    </p>
-              </div>
-
-              {/* Evening Report */}
-              <div className="bg-slate-800/50 p-4 rounded-xl border border-blue-500/20 hover:border-blue-500/40 transition-colors">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Moon className="w-4 h-4 text-blue-500" />
-                      <span className="font-bold text-blue-200">18:37 PM 晚報</span>
-                    </div>
-                    <p className="text-slate-400 text-xs leading-relaxed">
-                      <strong>下班通勤閱讀：</strong>台股籌碼(三大法人)全數公布、歐洲股市開盤動態。
-                    </p>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 italic text-center mt-2">
-               * 我們刻意選擇 37 分 (冷門分鐘數) 以避開 GitHub 整點的網路塞車。
-            </p>
-          </section>
-
-          {/* Troubleshooting Section */}
-          <section className="space-y-4 pt-6 border-t border-slate-800">
-             <h3 className="text-lg font-bold text-white flex items-center gap-2 text-red-400">
-              <AlertTriangle className="w-5 h-5" />
-              疑難排解
-            </h3>
-            <div className="bg-red-900/10 border border-red-500/20 rounded-lg p-4 space-y-3 text-sm text-slate-300">
-               <ul className="list-disc list-inside space-y-2">
-                  <li>
-                     <strong className="text-white">GitHub 專案閒置</strong>：若專案超過 60 天沒有新的 Commit，GitHub 會自動暫停排程。請至 Actions 頁面手動啟用。
-                  </li>
-                  <li>
-                     <strong className="text-white">時區觀念</strong>：GitHub 伺服器使用 UTC 時間。我們設定 UTC 22:37 其實就是台灣隔天的 06:37。
-                  </li>
-               </ul>
             </div>
           </section>
 

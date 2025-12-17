@@ -22,6 +22,13 @@ export enum ImageStyle {
   Realistic = '寫實攝影 (Photorealistic)'
 }
 
+export enum AIModel {
+  Pro = 'gemini-3-pro-preview',
+  Flash3 = 'gemini-3-flash-preview',
+  Flash25 = 'gemini-2.5-flash',
+  Flash2 = 'gemini-flash-latest'
+}
+
 export interface GroundingSource {
   title: string;
   uri: string;
@@ -53,4 +60,5 @@ export interface AppSettings {
   geminiApiKey: string;
   telegramBotToken: string;
   telegramChatId: string;
+  preferredModel: AIModel;
 }

@@ -1,11 +1,14 @@
+
 import React, { useState, useEffect } from 'react';
-import { Platform, Tone, ImageStyle, GenerateRequest } from '../types';
+import { Platform, Tone, ImageStyle, GenerateRequest, AIModel } from '../types';
 import { getTrendingTopics } from '../services/geminiService';
-import { Send, TrendingUp, Loader2, Tag, Flame, RefreshCw, Palette } from 'lucide-react';
+// Added Zap to the imports to fix the "Cannot find name 'Zap'" error on line 120
+import { Send, TrendingUp, Loader2, Tag, Flame, RefreshCw, Palette, Sparkles, BrainCircuit, Zap } from 'lucide-react';
 
 interface InputFormProps {
   onGenerate: (req: GenerateRequest) => void;
   isLoading: boolean;
+  currentModel: AIModel;
 }
 
 const QUICK_TAGS = [
@@ -19,20 +22,39 @@ const QUICK_TAGS = [
   "美股大盤"
 ];
 
-const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
+const LOADING_STEPS = [
+  "正在連線 Google Search 檢索最新財經新聞...",
+  "分析美股與台股供應鏈關聯性...",
+  "AI 正在進行深度邏輯推演 (Thinking)...",
+  "根據指定風格撰寫社群貼文內容...",
+  "生成 AI 繪圖建議指令...",
+  "最後校稿與 Emoji 美化中..."
+];
+
+const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading, currentModel }) => {
   const [topic, setTopic] = useState('');
-  
-  // Initialize with explicit values
   const [platform, setPlatform] = useState<Platform>(Platform.Blog);
   const [tone, setTone] = useState<Tone>(Tone.Professional);
   const [imageStyle, setImageStyle] = useState<ImageStyle>(ImageStyle.Editorial);
   
-  // Trending Topics State
   const [trendingTopics, setTrendingTopics] = useState<string[]>([]);
   const [isTrendingLoading, setIsTrendingLoading] = useState(false);
   const [hasFetchedTrending, setHasFetchedTrending] = useState(false);
+  
+  // Loading Step state
+  const [loadingStepIdx, setLoadingStepIdx] = useState(0);
 
-  // CRITICAL FIX: Use setTimeout to override browser autofill behavior
+  useEffect(() => {
+    let interval: number;
+    if (isLoading) {
+      setLoadingStepIdx(0);
+      interval = window.setInterval(() => {
+        setLoadingStepIdx(prev => (prev + 1) % LOADING_STEPS.length);
+      }, 4000);
+    }
+    return () => clearInterval(interval);
+  }, [isLoading]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setPlatform(Platform.Blog);
@@ -52,7 +74,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Allow Ctrl+Enter or Cmd+Enter to submit
     if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
       e.preventDefault();
       triggerGenerate();
@@ -68,7 +89,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
   const handleFetchTrending = async () => {
     setIsTrendingLoading(true);
     try {
-      // Hack: Retrieve key from localStorage directly for this specific call
       let apiKey = process.env.API_KEY;
       try {
           const settings = localStorage.getItem('app_settings');
@@ -83,11 +103,13 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
       setHasFetchedTrending(true);
     } catch (error) {
       console.error(error);
-      alert("無法取得熱搜。請確保您已在「設定」中輸入 API Key，或檢查網路連線。");
+      alert("無法取得熱搜。請確保您已在「設定」中輸入 API Key。");
     } finally {
       setIsTrendingLoading(false);
     }
   };
+
+  const isSlowModel = currentModel === AIModel.Pro || currentModel === AIModel.Flash25;
 
   return (
     <form onSubmit={handleSubmit} className="bg-slate-850 p-6 rounded-xl border border-slate-700 shadow-xl" autoComplete="off">
@@ -96,10 +118,13 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
           <TrendingUp className="w-6 h-6" />
           <h2 className="text-xl font-bold text-white">貼文參數設定</h2>
         </div>
+        <div className="px-3 py-1 bg-slate-900 border border-slate-800 rounded-full flex items-center gap-1.5">
+           {isSlowModel ? <BrainCircuit className="w-3 h-3 text-purple-400" /> : <Zap className="w-3 h-3 text-emerald-400" />}
+           <span className="text-[10px] text-slate-400 font-mono uppercase">{currentModel.split('-')[1] || 'Flash'} MODE</span>
+        </div>
       </div>
 
       <div className="space-y-6">
-        {/* Topic Input */}
         <div>
           <label className="block text-sm font-medium text-slate-400 mb-2 flex justify-between">
             <span>核心主題 / 股票代號 / 新聞事件</span>
@@ -116,9 +141,7 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
             autoComplete="off"
           />
           
-          {/* Trending & Quick Tags Section */}
           <div className="mt-4 space-y-4">
-            {/* Real-time Trending */}
             <div className="flex flex-col gap-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1.5 text-xs font-semibold text-orange-400 uppercase tracking-wide">
@@ -171,7 +194,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               )}
             </div>
 
-            {/* Static Quick Tags */}
             <div className="flex flex-col gap-2">
               <div className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 常用標籤 (Common Tags)
@@ -194,7 +216,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Platform Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">
               發布平台 (預設:方格子)
@@ -205,7 +226,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               onChange={(e) => setPlatform(e.target.value as Platform)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 outline-none appearance-none"
               autoComplete="off"
-              name="platform_select_v2"
             >
               {Object.values(Platform).map((p) => (
                 <option key={p} value={p}>{p}</option>
@@ -213,7 +233,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
             </select>
           </div>
 
-          {/* Tone Selection */}
           <div>
             <label className="block text-sm font-medium text-slate-400 mb-2">
               文章風格
@@ -223,7 +242,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               onChange={(e) => setTone(e.target.value as Tone)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-primary-600 outline-none appearance-none"
               autoComplete="off"
-              name="tone_select_v2"
             >
               {Object.values(Tone).map((t) => (
                 <option key={t} value={t}>{t}</option>
@@ -231,7 +249,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
             </select>
           </div>
 
-          {/* Image Style Selection */}
           <div>
             <label className="flex items-center gap-1.5 text-sm font-medium text-purple-400 mb-2">
               <Palette className="w-3.5 h-3.5" />
@@ -243,7 +260,6 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
               onChange={(e) => setImageStyle(e.target.value as ImageStyle)}
               className="w-full bg-slate-900 text-white border border-slate-700 rounded-lg p-3 focus:ring-2 focus:ring-purple-600 outline-none appearance-none"
               autoComplete="off"
-              name="style_select_v2"
             >
               {Object.values(ImageStyle).map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -252,29 +268,54 @@ const InputForm: React.FC<InputFormProps> = ({ onGenerate, isLoading }) => {
           </div>
         </div>
 
-        {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={isLoading || !topic.trim()}
-          className={`w-full flex items-center justify-center gap-2 py-3 px-4 rounded-lg font-semibold text-white transition-all transform hover:scale-[1.02] ${
-            isLoading || !topic.trim()
-              ? 'bg-slate-700 cursor-not-allowed text-slate-400'
-              : 'bg-gradient-to-r from-primary-600 to-blue-500 hover:from-primary-500 hover:to-blue-400 shadow-lg shadow-blue-900/20'
-          }`}
-        >
-          {isLoading ? (
-            <>
-              <Loader2 className="w-5 h-5 animate-spin" />
-              <span>正在搜尋數據並撰寫中...</span>
-            </>
-          ) : (
-            <>
-              <Send className="w-5 h-5" />
-              <span>生成專業貼文</span>
-            </>
+        <div className="space-y-3">
+          <button
+            type="submit"
+            disabled={isLoading || !topic.trim()}
+            className={`w-full flex flex-col items-center justify-center gap-1 py-3 px-4 rounded-xl font-semibold text-white transition-all transform hover:scale-[1.01] ${
+              isLoading || !topic.trim()
+                ? 'bg-slate-700 cursor-not-allowed text-slate-400'
+                : 'bg-gradient-to-r from-primary-600 to-blue-500 hover:from-primary-500 hover:to-blue-400 shadow-lg shadow-blue-900/20'
+            }`}
+          >
+            {isLoading ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  <span>{isSlowModel ? 'AI 正在深度思考中...' : '快速生成中...'}</span>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-2">
+                  <Send className="w-5 h-5" />
+                  <span>生成專業貼文</span>
+                </div>
+              </>
+            )}
+          </button>
+          
+          {isLoading && (
+            <div className="bg-slate-900/50 p-3 rounded-lg border border-slate-800 text-center animate-pulse">
+               <p className="text-[11px] text-blue-400 font-medium tracking-wide transition-all duration-500">
+                  {LOADING_STEPS[loadingStepIdx]}
+               </p>
+               <div className="w-full h-1 bg-slate-800 mt-2 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-500 animate-loading-bar"></div>
+               </div>
+            </div>
           )}
-        </button>
+        </div>
       </div>
+      <style>{`
+        @keyframes loading-bar {
+          0% { width: 0%; }
+          100% { width: 100%; }
+        }
+        .animate-loading-bar {
+          animation: loading-bar 4s infinite linear;
+        }
+      `}</style>
     </form>
   );
 };
