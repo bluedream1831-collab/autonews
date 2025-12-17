@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { X, Bot, Sun, Moon, CalendarClock, AlertTriangle, Terminal, Github, ShieldCheck, Sparkles, BrainCircuit, Zap, Timer, CheckCircle2, ChevronRight, Search } from 'lucide-react';
+import { X, Bot, Search, BrainCircuit, Zap, Sparkles, Timer, CheckCircle2, ChevronRight, Github } from 'lucide-react';
 
 interface HelpGuideProps {
   isOpen: boolean;
@@ -77,7 +77,6 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
         {/* Content */}
         <div className="p-6 space-y-10 text-slate-300">
           
-          {/* Section: Model Deep Dive */}
           <section className="space-y-4">
             <div className="flex items-center gap-2 mb-4">
               <Search className="w-5 h-5 text-blue-400" />
@@ -87,7 +86,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
             <div className="bg-blue-900/20 border border-blue-500/30 rounded-xl p-4 mb-6">
                <p className="text-sm leading-relaxed">
                  <strong className="text-white">Pro 模型不僅僅是「搜尋」而已。</strong><br/>
-                 它具備強大的推理引擎，能從多個 Google 搜尋結果中過濾掉雜訊，並將碎片化的資訊重組為具備專業邏輯的分析文。如果您需要的是「有靈魂、有數據」的貼文，<span className="text-purple-400 font-bold">Gemini 3 Pro</span> 是唯一選擇。
+                 它具備強大的推理引擎，能從多個 Google 搜尋結果中過濾掉雜訊，並將碎片化的資訊重組為具備專業邏輯的分析文。
                </p>
             </div>
 
@@ -103,7 +102,9 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
                       <div className="flex items-center justify-between mb-1">
                         <div className="flex items-center gap-2">
                           <h4 className="font-bold text-white">{m.name}</h4>
-                          {m.name.includes("Pro") && <span className="text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded uppercase">Strongest Search</span>}
+                          {m.name.includes("Pro") && (
+                            <span className="text-[10px] bg-purple-500/20 text-purple-400 border border-purple-500/30 px-2 py-0.5 rounded uppercase">Strongest Search</span>
+                          )}
                         </div>
                         <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-full uppercase tracking-tighter">
                           {m.speed}
@@ -135,7 +136,7 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
               <Github className="w-6 h-6" /> 🛠️ GitHub 自動化設定 (Secrets)
             </h3>
             <div className="bg-slate-950/50 p-4 rounded-lg border border-slate-800 text-sm space-y-3">
-              <p>若要在 GitHub 執行自動排程，請至專案的 <span className="text-blue-400 font-bold">Settings > Secrets > Actions</span> 設定：</p>
+              <p>若要在 GitHub 執行自動排程，請至專案的 <span className="text-blue-400 font-bold">Settings &gt; Secrets &gt; Actions</span> 設定：</p>
               
               <div className="grid grid-cols-1 gap-2 font-mono text-[11px]">
                 <div className="flex justify-between bg-slate-800 p-2 rounded border border-slate-700">
@@ -150,14 +151,9 @@ const HelpGuide: React.FC<HelpGuideProps> = ({ isOpen, onClose }) => {
                   <span className="text-blue-300">TELEGRAM_CHAT_ID</span>
                   <span className="text-slate-500">頻道 ID (-100...)</span>
                 </div>
-                <div className="flex justify-between bg-slate-900 p-2 rounded border border-slate-700 border-dashed">
-                  <span className="text-emerald-400">PREFERRED_MODEL</span>
-                  <span className="text-slate-500">gemini-3-pro-preview (推薦)</span>
-                </div>
               </div>
             </div>
           </section>
-
         </div>
       </div>
     </div>
