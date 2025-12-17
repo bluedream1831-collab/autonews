@@ -24,6 +24,28 @@ if (!API_KEY) {
 
 const ai = new GoogleGenAI({ apiKey: API_KEY });
 
+/**
+ * Helper function to retry operations on 503 (Overloaded) errors
+ * Uses exponential backoff strategy
+ */
+const retryOperation = async (operation, retries = 5, delay = 2000) => {
+  try {
+    return await operation();
+  } catch (error) {
+    const isOverloaded = error.message?.includes('503') || 
+                         error.message?.includes('overloaded') || 
+                         error.status === 503 ||
+                         error.code === 503;
+                         
+    if (retries > 0 && isOverloaded) {
+      console.warn(`⚠️ API Overloaded (503). Retrying in ${delay}ms... (${retries} attempts left)`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      return retryOperation(operation, retries - 1, delay * 2); // Double the delay for next retry
+    }
+    throw error;
+  }
+};
+
 // 2. 獲取並發送內容的主邏輯
 async function run() {
   try {
@@ -139,14 +161,15 @@ async function run() {
       - Return ONLY the topic name as a concise string (e.g., "NVIDIA財報創高", "台積電法說會", "聯準會降息一碼").
     `;
     
-    const trendResp = await ai.models.generateContent({
+    // 使用 retryOperation 包裹 API 呼叫
+    const trendResp = await retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: trendPrompt,
       config: { 
         tools: [{ googleSearch: {} }],
         temperature: 0.3
       }
-    });
+    }));
     
     let topic = trendResp.text.trim();
     topic = topic.replace(/^["']|["']$/g, '').replace(/^Topic:\s*/i, '').replace(/\.$/, '');
@@ -172,11 +195,12 @@ async function run() {
       - Data Accuracy: Use Google Search to ensure prices and percentages are from TODAY's session.
     `;
 
-    const contentResp = await ai.models.generateContent({
+    // 使用 retryOperation 包裹 API 呼叫
+    const contentResp = await retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: contentPrompt,
       config: { tools: [{ googleSearch: {} }] }
-    });
+    }));
 
     const postContent = contentResp.text;
     
@@ -196,7 +220,8 @@ async function run() {
     
     // 步驟 D: 生成 Image Prompt 並發送
     console.log("🎨 正在生成 AI 繪圖指令...");
-    const imagePromptResp = await ai.models.generateContent({
+    // 使用 retryOperation 包裹 API 呼叫
+    const imagePromptResp = await retryOperation(() => ai.models.generateContent({
       model: "gemini-2.5-flash",
       contents: `
         Create a high-quality Midjourney prompt (in English) to visualize: "${topic}". 
@@ -205,7 +230,7 @@ async function run() {
         Structure: Subject + Environment + Art Style + Lighting + --ar 16:9.
         Return ONLY the prompt string.
       `,
-    });
+    }));
     
     const imagePrompt = `🎨 建議配圖指令 (${randomStyle}):\n\n\`${imagePromptResp.text.trim()}\``;
     
